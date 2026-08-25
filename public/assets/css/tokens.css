@@ -1,0 +1,102 @@
+/*
+  Yo-Kai Express — Kiosk Design System v9 "Premium Glass"
+  Direction: a luxury automated hot-food kiosk — 3D glassmorphism,
+  matte frosted glass panels, translucent glowing layers on a deep
+  dark slate-gray canvas, warm golden + soft white accent lighting.
+  Explicit pivot away from the earlier cream "Warm Paper" palette per
+  the user's own reference brief for this pass.
+
+  Same token names as v7/v8 (semantic aliasing) so component rules in
+  style.css that consume var(--bg-0), var(--label), var(--panel-top)
+  etc. re-theme automatically without a rule-by-rule rewrite.
+*/
+
+:root {
+  --slate: #14171c;
+  --slate-1: #1a1e25;
+  --slate-2: #20242c;
+  --ink: #14100c;
+
+  --gold: #f0b545;
+  --gold-deep: #e0a83c;
+  --vermillion: #e8462a;
+  --vermillion-deep: #ff8562;
+
+  --accent: var(--gold);
+  --accent-press: var(--gold-deep);
+
+  --success: #4caf6d;
+  --warning: var(--gold);
+  --danger: #ff5f52;
+
+  --white: #fffdf8;
+
+  --font-display: "Noto Sans TC", "Noto Sans", -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-body: "Noto Sans TC", "Noto Sans", -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-serif: "Noto Serif TC", "Noto Serif", Georgia, "PingFang TC", serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --step-2xs: clamp(0.74rem, 0.72rem + 0.12vw, 0.82rem);
+  --step-xs: clamp(0.86rem, 0.83rem + 0.15vw, 0.95rem);
+  --step-sm: clamp(0.98rem, 0.94rem + 0.2vw, 1.08rem);
+  --step-md: clamp(1.1rem, 1.04rem + 0.3vw, 1.25rem);
+  --step-lg: clamp(1.4rem, 1.28rem + 0.55vw, 1.7rem);
+  --step-xl: clamp(1.85rem, 1.6rem + 1vw, 2.3rem);
+  --step-2xl: clamp(2.6rem, 2.1rem + 1.8vw, 3.4rem);
+  --step-huge: clamp(4rem, 3.2rem + 3.6vw, 6.2rem);
+
+  --sp-1: 0.4rem;
+  --sp-2: 0.6rem;
+  --sp-3: 0.9rem;
+  --sp-4: 1.25rem;
+  --sp-5: 1.7rem;
+  --sp-6: 2.4rem;
+  --sp-7: 3.2rem;
+
+  --touch-min: 54px;
+  --touch-primary: 64px;
+
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset;
+  --shadow-pop: 0 22px 54px rgba(0,0,0,0.6), 0 0 46px rgba(240,181,69,0.07);
+  --glow-gold: 0 0 26px rgba(240,181,69,0.5);
+  --glow-vermillion: 0 0 26px rgba(232,70,42,0.4);
+
+  --ease-spring: cubic-bezier(0.32, 0.9, 0.32, 1.1);
+  --ease-glass: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --panel-top: rgba(255, 255, 255, 0.07);
+  --panel-bottom: rgba(255, 255, 255, 0.025);
+  --panel-border: rgba(255, 255, 255, 0.14);
+  --panel-border-shade: rgba(255, 255, 255, 0.08);
+
+  --surface-solid: #1e222a;
+  --surface-solid-2: #262b34;
+
+  --label: #f2f0ec;
+  --label-secondary: rgba(242, 240, 236, 0.66);
+  --label-tertiary: rgba(242, 240, 236, 0.4);
+
+  --text-on-light: var(--label);
+  --text-on-light-soft: var(--label-secondary);
+  --text-on-dark: #fffdf8;
+  --text-on-dark-soft: rgba(255, 253, 248, 0.8);
+
+  --divider-on-light: rgba(255, 255, 255, 0.12);
+
+  --chip-bg: rgba(255, 255, 255, 0.05);
+  --chip-bg-strong: rgba(30, 34, 41, 0.85);
+  --chip-border: rgba(255, 255, 255, 0.14);
+
+  --bg-0: var(--slate);
+  --bg-1: var(--slate-1);
+  --bg-2: var(--slate-2);
+
+  --cardinal: #83003f;
+  --sys-red: var(--danger);
+  --sys-green: var(--success);
+}

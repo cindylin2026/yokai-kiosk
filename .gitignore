@@ -1,0 +1,8 @@
+# Parallel mobile-ordering system — kept on disk, not part of this repo
+/mobile/
+
+# Runtime order data (flat-file order store, regenerates on demand)
+/var/orders/*.json
+
+# OS/editor cruft
+.DS_Store
