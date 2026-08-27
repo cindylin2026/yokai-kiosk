@@ -6,3 +6,6 @@
 
 # OS/editor cruft
 .DS_Store
+
+# Local dev-preview tooling config, not project code
+/.claude/
