@@ -72,7 +72,7 @@ let remaining = total;
 const cookCountdown = document.getElementById('cookCountdown');
 const cookSubtext = document.getElementById('cookSubtext');
 const cookingText = lang === 'zh' ? '我們煮麵，你來玩遊戲！' : 'We cook the food, you play the game!';
-const waitMessage = lang === 'zh' ? '掃碼看菜單 右側取餐 ➡️' : "Scan below to browse the menu Pickup on the right ➡️";
+const waitMessage = lang === 'zh' ? '掃碼看菜單<br>右側取餐 ➡️' : "Scan below to browse the menu<br>Pickup on the right ➡️";
 const utensilNote = lang === 'zh' ? '餐具可以先到下方小門拿取' : 'Grab your chopsticks and napkins below';
 const stageGamePane = document.getElementById('stageGamePane');
 const stageQrPane = document.getElementById('stageQrPane');
@@ -92,7 +92,7 @@ function startWaitPhase(){
     stageGamePane.classList.add('hidden');
     stageQrPane.classList.add('expanded');
     catchCounter.style.display = 'none';
-    cookCountdown.textContent = waitMessage;
+    cookCountdown.innerHTML = waitMessage;
     cookSubtext.textContent = utensilNote;
     cookSubtext.style.display = 'block';
 }
