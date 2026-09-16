@@ -1,26 +1,9 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
-# Fix MPM conflict — disable event/worker, enable prefork
-RUN a2dismod mpm_event mpm_worker 2>/dev/null || true && \
-    a2enmod mpm_prefork rewrite
+WORKDIR /var/www/html
 
-# Set document root to /var/www/html/public
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+COPY . .
 
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
-    /etc/apache2/sites-available/*.conf && \
-    sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' \
-    /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+EXPOSE 8080
 
-# Allow .htaccess overrides
-RUN sed -i 's/AllowOverride None/AllowOverride All/g' \
-    /etc/apache2/apache2.conf
-
-# Copy project files
-COPY . /var/www/html/
-
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html && \
-    chmod -R 755 /var/www/html
-
-EXPOSE 80
+CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
