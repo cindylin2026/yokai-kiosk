@@ -31,9 +31,9 @@
 
   --white: #fffdf8;
 
-  --font-display: "Noto Sans TC", "Noto Sans", -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
-  --font-body: "Noto Sans TC", "Noto Sans", -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
-  --font-serif: "Noto Serif TC", "Noto Serif", Georgia, "PingFang TC", serif;
+  --font-display: "Inter", "Noto Sans TC", -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-body: "Inter", "Noto Sans TC", -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-serif: "Inter", "Noto Sans TC", Georgia, "PingFang TC", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   --step-2xs: clamp(0.74rem, 0.72rem + 0.12vw, 0.82rem);

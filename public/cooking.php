@@ -12,175 +12,159 @@ if (!$order) {
     header('Location: menu.php');
     exit;
 }
-$lang = $_SESSION['lang'] ?? 'en';
-$item = $order['lines'][0]['item'] ?? null;
-
-// Real cook time varies 90s-3min by dish (see 'cook_time' in
-// menu_data.php) — the wait is NOT a fixed 45s. Three phases fill it:
-//   1) A picture-in-picture split: a big QR code (left, majority of the
-//      width) for whoever is next in line to scan and start browsing
-//      (menu.php?browse=1), running alongside the "Catch the
-//      Ingredients" game in a smaller pane (right) — both visible at
-//      once from the start, not QR-then-game. Game is capped at 45s
-//      regardless of real cook time — tapping for 3 minutes straight
-//      isn't fun, it's exhausting.
-//   2) At 45s the game pane and its "ingredients caught" counter are
-//      gone outright (no final-score recap) and the QR pane expands to
-//      fill the whole stage — bigger and easier to read from a step or
-//      two back. Heading switches to one fixed line pointing the
-//      current guest at the physical pickup window, plus a smaller
-//      line about grabbing utensils from the compartment below while
-//      they wait.
-//   3) A bare 3-2-1 in the final 3 seconds as a "get ready" beat.
-// No running numeric countdown anywhere else on screen (Amanda: a
-// ticking number the whole time reads as "excessive wait").
-$totalSeconds = isset($_GET['fast']) ? 12 : ($item['cook_time'] ?? 120);
-$gameSeconds = min(45, max(0, $totalSeconds - 3));
+$lang      = $_SESSION['lang'] ?? 'en';
+$item      = $order['lines'][0]['item'] ?? null;
+$totalSecs = isset($_GET['fast']) ? 10 : ($item['cook_time'] ?? 120);
+$browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
 ?>
 <!doctype html>
 <html lang="<?= $lang === 'zh' ? 'zh-Hant' : 'en' ?>">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Yo-Kai Express — <?= $lang === 'zh' ? '烹飪中' : 'Cooking' ?></title>
+<title>Yo-Kai Express</title>
 <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
+<style>
+* { box-sizing: border-box; }
+.pickup-screen {
+  min-height: 100vh; width: 100%;
+  background: #ece8e1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 18px;
+}
+.pickup-frame {
+  width: calc(100vw - 36px); max-width: 1400px;
+  height: calc((100vw - 36px) * 9 / 16); max-height: 787px;
+  background: #f6f4f0;
+  border-radius: 22px; border: 1px solid rgba(197,160,89,0.28);
+  box-shadow: 0 0 0 1px rgba(197,160,89,0.1), 0 30px 70px rgba(25,27,30,0.12);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 5%;
+  padding: 4% 6%;
+  position: relative; overflow: hidden;
+}
+
+/* Logo top-left */
+.pickup-logo {
+  position: absolute; top: 4%; left: 4%;
+}
+.pickup-logo img { height: 28px; width: auto; }
+
+/* Order number top-right */
+.pickup-order-no {
+  position: absolute; top: 4%; right: 4%;
+  font-family: var(--font-mono); font-weight: 700; font-size: .82rem;
+  letter-spacing: .06em; color: #8a7040;
+  background: rgba(197,160,89,0.1); border: 1px solid rgba(197,160,89,0.25);
+  border-radius: 999px; padding: 5px 16px;
+}
+
+/* Main headline */
+.pickup-headline {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(2rem, 5vw, 4rem);
+  color: #2b2b2a; text-align: center; line-height: 1.15;
+}
+.pickup-headline .arrow { color: #c5a059; }
+
+/* Sub line */
+.pickup-sub {
+  font-size: clamp(1.1rem, 2vw, 1.7rem);
+  color: #6b6862; text-align: center; font-weight: 600;
+}
+
+/* QR code */
+.pickup-qr {
+  background: #fff; border-radius: 16px;
+  border: 2px solid rgba(197,160,89,0.3);
+  padding: 14px;
+  box-shadow: 0 8px 28px rgba(25,27,30,0.08);
+}
+.pickup-qr img {
+  display: block;
+  width: clamp(200px, 26vw, 320px);
+  height: auto;
+}
+
+/* Progress bar at very bottom */
+.pickup-progress {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 4px; background: rgba(25,27,30,0.06);
+}
+.pickup-progress-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #d9c08a, #c5a059);
+  transition: width 1s linear;
+}
+
+/* Countdown overlay */
+.pickup-countdown {
+  position: absolute; inset: 0; z-index: 10;
+  background: #f6f4f0;
+  display: none; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(8rem, 20vw, 14rem); color: #c5a059;
+}
+</style>
 </head>
 <body>
-<div class="cook-screen">
-    <div class="cook-order">#<?= htmlspecialchars($order['number']) ?></div>
-    <div class="cook-countdown" id="cookCountdown"><?= $lang === 'zh' ? '我們煮麵，你來玩遊戲！' : 'We cook the food, you play the game!' ?></div>
-    <div class="cook-subtext" id="cookSubtext" style="display:none;"></div>
+<div class="pickup-screen">
+  <div class="pickup-frame">
 
-    <div class="cook-stage-wrap" id="cookStageWrap">
-        <div class="stage-qr-pane" id="stageQrPane">
-            <img class="qr-big-img" id="qrImgBig" alt="QR code">
-            <div class="qr-big-caption"><?= $lang === 'zh' ? '下一位客人，請掃碼看菜單' : 'Next guest, please scan here to browse the menu' ?></div>
-        </div>
-        <div class="stage-game-pane" id="stageGamePane">
-            <img class="game-chef" id="gameChef" src="<?= asset(mascot('shiba')['img']) ?>" alt="">
-            <div class="game-bowl" id="gameBowl">🍜</div>
-        </div>
+    <div class="pickup-logo">
+      <img src="<?= asset('assets/brand/logo.png') ?>" alt="Yo-Kai Express">
     </div>
 
-    <div class="catch-counter" id="catchCounter"><?= $lang === 'zh' ? '已接住食材：' : 'Ingredients caught: ' ?><span class="n" id="catchCount">0</span></div>
+    <div class="pickup-order-no">#<?= htmlspecialchars($order['number']) ?></div>
+
+    <div class="pickup-headline">
+      <?= $lang === 'zh' ? '取餐請至右側 <span class="arrow">→</span>' : 'Pick up on the right <span class="arrow">→</span>' ?>
+    </div>
+
+    <div class="pickup-sub">
+      <?= $lang === 'zh'
+        ? '下一位顧客：掃描下方 QR Code 搶先看菜單'
+        : 'Next guest: scan the QR code below to browse the menu' ?>
+    </div>
+
+    <div class="pickup-qr">
+      <img id="qrImg" alt="QR code">
+    </div>
+
+    <div class="pickup-progress">
+      <div class="pickup-progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="pickup-countdown" id="countdown"></div>
+
+  </div>
 </div>
+
 <script>
-const lang = <?= json_encode($lang) ?>;
-const total = <?= (int)$totalSeconds ?>;
-const gameSeconds = <?= (int)$gameSeconds ?>;
-let remaining = total;
-const cookCountdown = document.getElementById('cookCountdown');
-const cookSubtext = document.getElementById('cookSubtext');
-const cookingText = lang === 'zh' ? '我們煮麵，你來玩遊戲！' : 'We cook the food, you play the game!';
-const waitMessage = lang === 'zh' ? '掃碼看菜單<br>右側取餐 ➡️' : "Scan below to browse the menu<br>Pickup on the right ➡️";
-const utensilNote = lang === 'zh' ? '餐具可以先到下方小門拿取' : 'Grab your chopsticks and napkins below';
-const stageGamePane = document.getElementById('stageGamePane');
-const stageQrPane = document.getElementById('stageQrPane');
-const gameStage = stageGamePane;
-const gameChef = document.getElementById('gameChef');
-const gameBowl = document.getElementById('gameBowl');
-const catchCountEl = document.getElementById('catchCount');
-const catchCounter = document.getElementById('catchCounter');
-let catchCount = 0;
-let gamePhaseOver = false;
+const total    = <?= (int)$totalSecs ?>;
+const browseUrl = <?= json_encode($browseUrl) ?>;
+let remaining  = total;
 
-function startWaitPhase(){
-    if (gamePhaseOver) return;
-    gamePhaseOver = true;
-    clearInterval(spawnTimer);
-    document.querySelectorAll('.falling-item').forEach(el => el.remove());
-    stageGamePane.classList.add('hidden');
-    stageQrPane.classList.add('expanded');
-    catchCounter.style.display = 'none';
-    cookCountdown.innerHTML = waitMessage;
-    cookSubtext.textContent = utensilNote;
-    cookSubtext.style.display = 'block';
-}
+document.getElementById('qrImg').src =
+  'https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=2&data=' +
+  encodeURIComponent(browseUrl);
 
-function vibrate(ms) {
-    if (navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) {} }
-}
+const bar       = document.getElementById('progressBar');
+const countdown = document.getElementById('countdown');
 
-const ingredients = ['🥚', '🌿', '🥩'];
-const hazards = ['💣'];
-const fallDuration = 3200;
-const hazardChance = 0.25;
+function tick() {
+  if (remaining <= 0) { window.location.href = 'ready.php'; return; }
 
-function spawnIngredient(){
-    const isHazard = Math.random() < hazardChance;
-    const stageWidth = gameStage.clientWidth;
-    const item = document.createElement('div');
-    item.className = 'falling-item';
-    item.textContent = isHazard
-        ? hazards[Math.floor(Math.random() * hazards.length)]
-        : ingredients[Math.floor(Math.random() * ingredients.length)];
-    const x = 40 + Math.random() * (stageWidth - 80);
-    item.style.left = x + 'px';
-    item.style.animationDuration = fallDuration + 'ms';
-    gameStage.appendChild(item);
+  bar.style.width = Math.min(100, ((total - remaining) / total) * 100) + '%';
 
-    let caught = false;
-    function catchItem(){
-        if (caught) return;
-        caught = true;
-        const rect = item.getBoundingClientRect();
-        const stageRect = gameStage.getBoundingClientRect();
-        const pop = document.createElement('div');
-        pop.className = 'catch-pop' + (isHazard ? ' bad' : '');
-        gameStage.appendChild(pop);
-        setTimeout(() => pop.remove(), 700);
-        item.classList.add('caught');
-        gameBowl.classList.remove('bounce', 'shake');
-        void gameBowl.offsetWidth;
+  if (remaining <= 3) {
+    countdown.style.display = 'flex';
+    countdown.textContent   = remaining;
+  }
 
-        if (isHazard) {
-            catchCount = Math.max(0, catchCount - 1);
-            pop.textContent = '−1';
-            gameBowl.classList.add('shake');
-            vibrate([30, 40, 30]);
-        } else {
-            catchCount++;
-            pop.textContent = '+1';
-            gameBowl.classList.add('bounce');
-            vibrate(12);
-        }
-        catchCountEl.textContent = catchCount;
-        pop.style.left = (rect.left - stageRect.left) + 'px';
-        pop.style.top = (rect.top - stageRect.top) + 'px';
-        setTimeout(() => item.remove(), 420);
-    }
-    item.addEventListener('pointerdown', catchItem);
-    item.addEventListener('animationend', () => { if (!caught) item.remove(); });
-}
-
-let spawnTimer = setInterval(spawnIngredient, 1300);
-
-const browseUrl = location.origin + '/menu.php?browse=1';
-document.getElementById('qrImgBig').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=2&data=' + encodeURIComponent(browseUrl);
-
-function tick(){
-    const elapsed = total - remaining;
-
-    if (remaining <= 0) {
-        cookCountdown.innerHTML = lang === 'zh' ? '好了！' : 'Ready!';
-        cookSubtext.style.display = 'none';
-        clearInterval(spawnTimer);
-        setTimeout(() => { window.location.href = 'ready.php'; }, 500);
-        return;
-    }
-
-    if (elapsed >= gameSeconds && !gamePhaseOver) {
-        startWaitPhase();
-    }
-
-    if (remaining <= 3) {
-        cookSubtext.style.display = 'none';
-        cookCountdown.innerHTML = '<span class="n">' + remaining + '</span>';
-    } else if (!gamePhaseOver) {
-        cookCountdown.textContent = cookingText;
-    }
-    remaining--;
-    setTimeout(tick, 1000);
+  remaining--;
+  setTimeout(tick, 1000);
 }
 tick();
 </script>

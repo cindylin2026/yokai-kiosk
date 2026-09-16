@@ -2,202 +2,238 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../src/config.php';
 
-$browseMode = isset($_GET['browse']);
+$lang = $_SESSION['lang'] ?? 'en';
 
-if (!$browseMode && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bowl'])) {
-    Cart::clear();
-    Cart::add((string)$_POST['add_bowl'], 1);
-    $redirect = 'menu.php' . (isset($_POST['cat']) ? '?cat=' . urlencode((string)$_POST['cat']) : '');
-    header('Location: ' . $redirect);
+if (isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'zh'], true)) {
+    $_SESSION['lang'] = $_GET['lang'];
+    $lang = $_SESSION['lang'];
+    $qs = $_GET; unset($qs['lang']);
+    header('Location: menu.php?' . http_build_query($qs));
     exit;
 }
 
-$lang = $_SESSION['lang'] ?? 'en';
 $categories = menu_categories();
-$catKeys = array_keys($categories);
-$activeCat = $_GET['cat'] ?? $catKeys[0];
-if (!isset($categories[$activeCat])) {
-    $activeCat = $catKeys[0];
-}
+$catKeys    = array_keys($categories);
+$activeCat  = $_GET['cat'] ?? $catKeys[0];
+if (!isset($categories[$activeCat])) $activeCat = $catKeys[0];
 $_SESSION['last_cat'] = $activeCat;
 
 $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $activeCat));
-$cartCount = Cart::count();
-$cartTotal = Cart::total();
-
-$payload = array_map(function ($item) {
-    return [
-        'id' => $item['id'],
-        'name' => $item['name'],
-        'desc' => $item['desc'],
-        'price' => money($item['price']),
-        'thumb' => item_thumb_html($item),
-        'stock' => $item['stock'],
-        'badge' => $item['badge'],
-        'allergens' => array_map(fn($a) => ALLERGEN_LABELS[$a] ?? ['en' => $a, 'zh' => $a, 'icon' => '⚠️'], $item['allergens'] ?? []),
-    ];
-}, $items);
 ?>
 <!doctype html>
 <html lang="<?= $lang === 'zh' ? 'zh-Hant' : 'en' ?>">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Yo-Kai Express — <?= t('main_menu') ?></title>
+<title>Yo-Kai Express — <?= $lang === 'zh' ? '菜單' : 'Menu' ?></title>
 <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
+<style>
+/* ── Full-page menu ── */
+.menu-screen {
+  min-height: 100vh; width: 100%;
+  background: #ece8e1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 18px; box-sizing: border-box;
+}
+.menu-frame {
+  width: calc(100vw - 36px); max-width: 1400px;
+  height: calc((100vw - 36px) * 9 / 16); max-height: 787px;
+  background: #f6f4f0;
+  border-radius: 22px; border: 1px solid rgba(197,160,89,0.28);
+  box-shadow: 0 0 0 1px rgba(197,160,89,0.1), 0 30px 70px rgba(25,27,30,0.12);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* Topbar */
+.menu-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px 0; flex: 0 0 auto;
+}
+.menu-topbar .t-logo img { height: 30px; width: auto; }
+.menu-topbar .t-right    { display: flex; align-items: center; gap: 12px; }
+.menu-lang {
+  display: flex; background: rgba(25,27,30,0.06);
+  border: 1px solid rgba(197,160,89,0.3); border-radius: 999px; padding: 2px;
+}
+.menu-lang button {
+  border: none; background: transparent; color: #6b6862;
+  padding: 5px 14px; border-radius: 999px; font-weight: 700; font-size: .8rem;
+  cursor: pointer; font-family: var(--font-body); transition: all .18s;
+}
+.menu-lang button.active { background: #c5a059; color: #fff; }
+.menu-cart-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: #2b2b2a; color: #fff; font-weight: 700; font-size: .82rem;
+  padding: 8px 18px; border-radius: 999px; text-decoration: none;
+}
+.menu-cart-badge {
+  background: #c5a059; color: #fff; font-size: 10px; font-weight: 900;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Category tabs */
+.menu-tabs {
+  display: flex; gap: 8px; padding: 12px 28px 0;
+  flex: 0 0 auto; overflow-x: auto; scrollbar-width: none;
+}
+.menu-tabs::-webkit-scrollbar { display: none; }
+.menu-tab {
+  padding: 8px 22px; border-radius: 999px;
+  border: 1px solid rgba(197,160,89,0.3); color: #6b6862;
+  font-weight: 700; font-size: .85rem; text-decoration: none;
+  background: #fff; white-space: nowrap; transition: all .18s;
+}
+.menu-tab.active {
+  background: linear-gradient(180deg,#d9c08a,#c5a059);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 4px 12px rgba(197,160,89,0.3);
+}
+
+/* Grid — full width, 4 columns */
+.menu-grid {
+  flex: 1; min-height: 0;
+  display: flex; flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 16px;
+  padding: 16px 28px 20px;
+  overflow-y: auto; scrollbar-width: thin;
+  scrollbar-color: rgba(197,160,89,0.3) transparent;
+}
+.menu-grid::-webkit-scrollbar { width: 4px; }
+.menu-grid::-webkit-scrollbar-thumb { background: rgba(197,160,89,0.35); border-radius: 2px; }
+
+.menu-card {
+  /* 4 columns, 3 gaps of 16px */
+  flex: 0 0 calc((100% - 48px) / 4);
+  background: #fff;
+  border: 1.5px solid rgba(197,160,89,0.15);
+  border-radius: 16px; padding: 12px;
+  cursor: pointer; position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+  text-decoration: none; color: inherit;
+  transition: transform .18s, box-shadow .18s, border-color .18s;
+}
+.menu-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(197,160,89,0.2);
+  border-color: #c5a059;
+}
+.menu-card.sold-out { opacity: .45; pointer-events: none; }
+
+/* Square photo via padding-% trick */
+.mc-photo {
+  width: 100%; padding-bottom: 100%; height: 0;
+  position: relative; border-radius: 12px; overflow: hidden;
+  background: #edeef0; margin-bottom: 10px;
+}
+.mc-photo img {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%; object-fit: cover;
+}
+.mc-name {
+  font-family: var(--font-serif); font-size: 1rem; font-weight: 700;
+  color: #2b2b2a; line-height: 1.3; margin: 0;
+}
+.mc-price {
+  font-family: var(--font-serif); font-weight: 800;
+  color: #c5a059; font-size: 1rem; margin-top: 5px;
+}
+
+/* Badges */
+.mc-badge {
+  position: absolute; top: 8px; left: 8px;
+  font-size: 9px; font-weight: 800; letter-spacing: .04em;
+  padding: 3px 9px; border-radius: 999px; color: #fff;
+  background: #c5a059; text-transform: uppercase; z-index: 1;
+}
+.mc-badge.spicy   { background: #dc3545; }
+.mc-badge.vegan   { background: #4caf6d; }
+.mc-badge.new     { background: #7b5ea7; }
+.mc-badge.soldout { background: #8a8378; }
+.mc-badge.low     { background: #dc3545; }
+</style>
 </head>
 <body>
-<div class="explore-screen<?= $browseMode ? ' browse-mode' : '' ?>">
-    <div class="explore-frame">
-        <?php if ($browseMode): ?>
-            <div class="browse-banner">📱 <?= $lang === 'zh' ? '瀏覽模式 — 準備好後請至機台完成點餐' : 'Browsing mode — order at the kiosk when ready' ?></div>
+<div class="menu-screen">
+  <div class="menu-frame">
+
+    <!-- Topbar -->
+    <div class="menu-topbar">
+      <a class="t-logo" href="index.php">
+        <img src="<?= asset('assets/brand/logo.png') ?>" alt="Yo-Kai Express">
+      </a>
+      <div class="t-right">
+        <div class="menu-lang">
+          <button class="<?= $lang === 'en' ? 'active' : '' ?>" onclick="setLang('en')">EN</button>
+          <button class="<?= $lang === 'zh' ? 'active' : '' ?>" onclick="setLang('zh')">中文</button>
+        </div>
+        <?php $cartCount = Cart::count(); if ($cartCount > 0): ?>
+          <a class="menu-cart-btn" href="cart.php">
+            🛒 <span class="menu-cart-badge"><?= $cartCount ?></span>
+          </a>
         <?php endif; ?>
-        <div class="explore-topbar">
-            <?php if ($browseMode): ?>
-                <span></span>
-            <?php else: ?>
-                <a class="explore-back" href="index.php">‹ <?= $lang === 'zh' ? '回到首頁' : 'Back to Home' ?></a>
-            <?php endif; ?>
-            <div class="explore-logo">
-                <span class="word">YO-KAI</span>
-                <span class="sub">express</span>
-            </div>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <?php if (!$browseMode): ?>
-                    <a class="explore-lang" href="cart.php">🛒 <?= $cartCount > 0 ? $cartCount . ' · ' . money($cartTotal) : ($lang === 'zh' ? '購物車' : 'Cart') ?></a>
-                <?php endif; ?>
-                <div class="explore-lang" onclick="toggleLang()">🌐 <?= $lang === 'zh' ? '中文' : 'English' ?> ▾</div>
-            </div>
-        </div>
-
-        <div class="explore-body">
-            <div class="explore-main">
-                <div class="explore-heading">
-                    <span class="ico">🍜</span>
-                    <div>
-                        <h1><?= $lang === 'zh' ? '探索菜單' : 'Explore Our Menu' ?></h1>
-                        <p><?= $lang === 'zh' ? '現點現做，新鮮出爐' : 'Hot. Fresh. Made to order.' ?></p>
-                    </div>
-                </div>
-
-                <div class="explore-tabs">
-                    <?php foreach ($categories as $key => $cat): ?>
-                        <a class="explore-tab<?= $key === $activeCat ? ' active' : '' ?>" href="menu.php?cat=<?= urlencode($key) ?>&lang=<?= $lang ?><?= $browseMode ? '&browse=1' : '' ?>">
-                            <?= $cat['icon'] ?> <?= htmlspecialchars($cat[$lang]) ?>
-                        </a>
-                    <?php endforeach; ?>
-                    <a class="explore-tab allergen-tab" href="#" onclick="event.preventDefault(); openModal();">
-                        🌿 <?= $lang === 'zh' ? '營養標示' : 'Nutritional Facts' ?>
-                    </a>
-                </div>
-
-                <div class="explore-grid" id="exploreGrid">
-                    <?php foreach ($items as $i => $item): $soldOut = $item['stock'] <= 0; $badgeText = $item['badge'][$lang] ?? ($item['badge']['en'] ?? null); $isSpicy = ($item['badge']['en'] ?? '') === 'Spicy'; ?>
-                        <div class="explore-card<?= $i === 0 ? ' selected' : '' ?><?= $soldOut ? ' sold-out' : '' ?>" data-idx="<?= $i ?>" onclick="selectItem(<?= $i ?>)">
-                            <?php if ($badgeText): ?>
-                                <span class="badge-tag<?= $isSpicy ? ' spicy' : '' ?>"><?= htmlspecialchars($badgeText) ?></span>
-                            <?php elseif ($soldOut): ?>
-                                <span class="badge-tag out"><?= $lang === 'zh' ? '售罄' : 'Sold Out' ?></span>
-                            <?php elseif ($item['stock'] <= 3): ?>
-                                <span class="badge-tag low"><?= $lang === 'zh' ? "剩 {$item['stock']}" : "{$item['stock']} left" ?></span>
-                            <?php endif; ?>
-                            <div class="thumb"><?= item_thumb_html($item) ?></div>
-                            <h3><?= htmlspecialchars(item_name($item)) ?></h3>
-                            <div class="price"><?= money($item['price']) ?></div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-
-            <div class="explore-detail" id="exploreDetail">
-                <!-- filled by JS on load -->
-            </div>
-        </div>
-
-        <div class="explore-footer" id="exploreFooter">
-            <?php if ($browseMode): ?>
-                <a class="f-link" href="#" onclick="event.preventDefault(); openModal();"><?= $lang === 'zh' ? '營養標示' : 'Nutritional Facts' ?></a>
-                <span class="f-note"><?= $lang === 'zh' ? '準備好後請至機台點餐' : 'Order at the kiosk when you\'re ready' ?></span>
-            <?php elseif ($cartCount > 0): ?>
-                <span class="f-link">🛒 <?= $lang === 'zh' ? "{$cartCount} 件商品 · " . money($cartTotal) : "{$cartCount} items · " . money($cartTotal) ?></span>
-                <a class="f-link" style="background:linear-gradient(180deg,#d9c08a,#c5a059); color:#fff; padding:10px 22px; border-radius:999px; font-weight:800;" href="cart.php"><?= $lang === 'zh' ? '前往結帳 →' : 'Proceed to Checkout →' ?></a>
-            <?php endif; ?>
-        </div>
+      </div>
     </div>
-</div>
 
-<div class="modal-backdrop explore-nutrition-scope" id="nutritionModal" style="display:none;">
-    <div class="modal-card">
-        <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
-        <table class="nutrition-table" id="nutritionTable">
-            <tr><th colspan="2"><?= t('nutrition_facts') ?></th></tr>
-        </table>
-        <button class="btn btn-primary btn-block" style="margin-top:var(--sp-4);" onclick="closeModal()">Close</button>
+    <!-- Category tabs -->
+    <div class="menu-tabs">
+      <?php foreach ($categories as $key => $cat): ?>
+        <a class="menu-tab <?= $key === $activeCat ? 'active' : '' ?>"
+           href="menu.php?cat=<?= urlencode($key) ?>">
+          <?= htmlspecialchars($cat[$lang]) ?>
+        </a>
+      <?php endforeach; ?>
     </div>
-</div>
+
+    <!-- Full-width item grid -->
+    <div class="menu-grid">
+      <?php foreach ($items as $item):
+        $soldOut   = $item['stock'] <= 0;
+        $badgeEn   = $item['badge']['en'] ?? null;
+        $badgeText = $item['badge'][$lang] ?? $badgeEn;
+        $badgeClass = match($badgeEn) {
+          'Spicy'       => 'spicy',
+          'Vegan'       => 'vegan',
+          'New'         => 'new',
+          "Chef's Pick" => '',
+          default       => '',
+        };
+        $detailUrl = 'item.php?id=' . urlencode($item['id']) . '&cat=' . urlencode($activeCat);
+      ?>
+        <a class="menu-card <?= $soldOut ? 'sold-out' : '' ?>"
+           href="<?= $soldOut ? '#' : $detailUrl ?>">
+
+          <?php if ($soldOut): ?>
+            <span class="mc-badge soldout"><?= $lang === 'zh' ? '售罄' : 'Sold Out' ?></span>
+          <?php elseif ($item['stock'] <= 3): ?>
+            <span class="mc-badge low"><?= $lang === 'zh' ? "剩 {$item['stock']}" : "{$item['stock']} left" ?></span>
+          <?php elseif ($badgeText): ?>
+            <span class="mc-badge <?= $badgeClass ?>"><?= htmlspecialchars($badgeText) ?></span>
+          <?php endif; ?>
+
+          <div class="mc-photo">
+            <img src="<?= htmlspecialchars(asset($item['img'])) ?>"
+                 alt="<?= htmlspecialchars($item['name'][$lang] ?? $item['name']['en']) ?>"
+                 loading="lazy">
+          </div>
+          <p class="mc-name"><?= htmlspecialchars($item['name'][$lang] ?? $item['name']['en']) ?></p>
+          <p class="mc-price"><?= money($item['price']) ?></p>
+        </a>
+      <?php endforeach; ?>
+    </div>
+
+  </div><!-- .menu-frame -->
+</div><!-- .menu-screen -->
 
 <script>
-const lang = <?= json_encode($lang) ?>;
-const browseMode = <?= json_encode($browseMode) ?>;
-const activeCat = <?= json_encode($activeCat) ?>;
-const items = <?= json_encode($payload, JSON_UNESCAPED_UNICODE) ?>;
-const nutrition = <?= json_encode(array_map(fn($i) => $i['nutrition'], $items), JSON_UNESCAPED_UNICODE) ?>;
-let selectedIdx = 0;
-
-function toggleLang(){
-    const u = new URL(window.location.href);
-    u.searchParams.set('lang', lang === 'zh' ? 'en' : 'zh');
-    window.location.href = u.toString();
+function setLang(l) {
+  const u = new URL(window.location.href);
+  u.searchParams.set('lang', l);
+  window.location.href = u.toString();
 }
-
-function renderDetail(idx){
-    const item = items[idx];
-    if (!item) return;
-    const detail = document.getElementById('exploreDetail');
-    const soldOut = item.stock <= 0;
-    const allergenHtml = item.allergens.length
-        ? '<div class="d-allergen-label">' + (lang === 'zh' ? '過敏原' : 'Allergens') + '</div><div class="d-allergen-row">' +
-          item.allergens.map(a => '<span class="d-allergen-chip"><span class="ico">' + a.icon + '</span>' + (a[lang] || a.en) + '</span>').join('') + '</div>'
-        : '<div class="d-allergen-label">' + (lang === 'zh' ? '過敏原' : 'Allergens') + '</div><div class="d-allergen-none">' + (lang === 'zh' ? '無已知過敏原' : 'No known allergens') + '</div>';
-    detail.innerHTML =
-        '<div class="d-photo">' + item.thumb + '</div>' +
-        '<h2>' + item.name[lang] + '</h2>' +
-        '<div class="d-desc">' + item.desc[lang] + '</div>' +
-        allergenHtml +
-        '<div class="d-price">' + item.price + '</div>' +
-        (browseMode
-            ? '<div class="d-browse-note">' + (lang === 'zh' ? '記住這道菜，到機台上就能點囉！' : 'Remember this one — order it at the kiosk!') + '</div>'
-            : soldOut
-                ? '<div class="d-sold-out">' + (lang === 'zh' ? '目前售罄' : 'Currently Sold Out') + '</div>'
-                : '<form method="post"><input type="hidden" name="add_bowl" value="' + item.id + '"><input type="hidden" name="cat" value="' + activeCat + '"><button type="submit" class="d-select">' + (lang === 'zh' ? '選擇這碗' : 'Select This Bowl') + ' <span class="arrow">→</span></button></form>') +
-        '<div class="d-note">' + (soldOut || browseMode ? '' : (lang === 'zh' ? `剩餘 ${item.stock} 份` : `${item.stock} remaining right now`)) + '</div>';
-}
-
-function selectItem(idx){
-    selectedIdx = idx;
-    document.querySelectorAll('.explore-card').forEach((el, i) => el.classList.toggle('selected', i === idx));
-    renderDetail(idx);
-}
-
-function openModal(){
-    const n = nutrition[selectedIdx];
-    if (!n) return;
-    const table = document.getElementById('nutritionTable');
-    table.innerHTML =
-        '<tr><th colspan="2">' + (lang === 'zh' ? '營養標示' : 'Nutrition Facts') + '</th></tr>' +
-        '<tr><td colspan="2" style="font-size:var(--step-xs);color:var(--text-on-light-soft);padding-top:10px;">Serving Size ' + n.serving + '</td></tr>' +
-        '<tr class="cal-row"><td>Calories</td><td class="val">' + n.calories + '</td></tr>' +
-        '<tr><td style="font-weight:700;">Total Fat ' + n.fat + 'g</td><td class="val">' + n.fat_dv + '%</td></tr>' +
-        '<tr><td style="padding-left:16px;">Saturated Fat ' + n.sat_fat + 'g</td><td class="val">' + n.sat_fat_dv + '%</td></tr>' +
-        '<tr class="thick"><td style="font-weight:700;">Sodium ' + n.sodium + 'mg</td><td class="val">' + n.sodium_dv + '%</td></tr>' +
-        '<tr><td style="font-weight:700;">Total Carbohydrate ' + n.carbs + 'g</td><td class="val">' + n.carbs_dv + '%</td></tr>' +
-        '<tr class="thick"><td style="padding-left:16px;">Total Sugars ' + n.sugar + 'g</td><td class="val"></td></tr>' +
-        '<tr><td style="font-weight:700;">Protein ' + n.protein + 'g</td><td class="val"></td></tr>';
-    document.getElementById('nutritionModal').style.display = 'flex';
-}
-function closeModal(){ document.getElementById('nutritionModal').style.display = 'none'; }
-
-renderDetail(0);
 </script>
 </body>
 </html>

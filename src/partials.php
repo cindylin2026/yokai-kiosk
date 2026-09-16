@@ -8,8 +8,7 @@ function render_topbar(bool $showLang = true): void
     ?>
     <div class="kiosk-topbar">
         <a class="kiosk-logo-elegant" href="menu.php" aria-label="Yo-Kai Express">
-            <span class="word">YO-KAI</span>
-            <span class="sub">express</span>
+            <img src="<?= asset('assets/brand/logo.png') ?>" alt="Yo-Kai Express" class="logo-img">
         </a>
         <div class="topbar-tools">
             <?php if ($showLang): ?>
@@ -182,26 +181,9 @@ function item_badge(array $item): ?string
     return $item['badge'][$lang] ?? $item['badge']['en'];
 }
 
-/**
- * Glossy stylized food emoji standing in for photography that doesn't
- * exist yet — the platform's native emoji glyphs (Apple/Google/etc.)
- * already render as polished 3D-ish icons, closer to the target look
- * than a flat line-art placeholder.
- */
-const ITEM_ICON_EMOJI = [
-    'spicy-miso-ramen' => '🍜',
-    'curry-chicken-don' => '🍛',
-    'edamame' => '🫛',
-    'gyoza' => '🥟',
-];
-
 function item_thumb_html(array $item): string
 {
-    if (!empty($item['img'])) {
-        $src = htmlspecialchars(asset($item['img']));
-        $alt = htmlspecialchars(item_name($item));
-        return "<img src=\"{$src}\" alt=\"{$alt}\" loading=\"lazy\">";
-    }
-    $emoji = ITEM_ICON_EMOJI[$item['id']] ?? '🍽️';
-    return '<span class="item-icon-art">' . $emoji . '</span>';
+    $src = htmlspecialchars(asset($item['img']));
+    $alt = htmlspecialchars(item_name($item));
+    return "<img src=\"{$src}\" alt=\"{$alt}\" loading=\"lazy\">";
 }
