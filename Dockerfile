@@ -1,7 +1,8 @@
 FROM php:8.2-apache
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Fix MPM conflict — disable event/worker, enable prefork
+RUN a2dismod mpm_event mpm_worker 2>/dev/null || true && \
+    a2enmod mpm_prefork rewrite
 
 # Set document root to /var/www/html/public
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
@@ -19,7 +20,7 @@ RUN sed -i 's/AllowOverride None/AllowOverride All/g' \
 COPY . /var/www/html/
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 755 /var/www/html
 
 EXPOSE 80
