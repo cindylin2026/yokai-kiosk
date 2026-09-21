@@ -4,7 +4,7 @@ require_once __DIR__ . '/../src/config.php';
 
 $lang = $_SESSION['lang'] ?? 'en';
 
-if (isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'zh'], true)) {
+if (isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'zh', 'ja', 'ko', 'es'], true)) {
     $_SESSION['lang'] = $_GET['lang'];
     $lang = $_SESSION['lang'];
     $qs = $_GET; unset($qs['lang']);
@@ -12,7 +12,6 @@ if (isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'zh'], true)) {
     exit;
 }
 
-// Handle order submission → add to cart → go straight to cart
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_bowl'])) {
     Cart::clear();
     Cart::add((string)$_POST['add_bowl'], 1);
@@ -36,6 +35,9 @@ $allergenList = array_map(
 );
 $n = $item['nutrition'];
 $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
+
+$langLabels = ['en'=>'English','zh'=>'中文','ja'=>'日本語','ko'=>'한국어','es'=>'Español'];
+$currentLangLabel = $langLabels[$lang] ?? 'English';
 ?>
 <!doctype html>
 <html lang="<?= $lang === 'zh' ? 'zh-Hant' : 'en' ?>">
@@ -60,24 +62,39 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
   display: flex; flex-direction: column;
   overflow: hidden;
 }
-
-/* Topbar */
 .item-topbar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 28px 0; flex: 0 0 auto;
 }
 .item-topbar .t-logo img { height: 30px; width: auto; }
 .item-topbar .t-right { display: flex; align-items: center; gap: 12px; }
-.item-lang {
-  display: flex; background: rgba(25,27,30,0.06);
-  border: 1px solid rgba(197,160,89,0.3); border-radius: 999px; padding: 2px;
+
+/* Language dropdown */
+.lang-dd { position: relative; }
+.lang-dd-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(25,27,30,0.06); border: 1px solid rgba(197,160,89,0.3);
+  border-radius: 999px; padding: 7px 16px;
+  font-weight: 700; font-size: .8rem; color: #6b6862;
+  cursor: pointer; white-space: nowrap; user-select: none;
 }
-.item-lang button {
-  border: none; background: transparent; color: #6b6862;
-  padding: 5px 14px; border-radius: 999px; font-weight: 700; font-size: .8rem;
-  cursor: pointer; font-family: var(--font-body); transition: all .18s;
+.lang-chevron { font-size: .6rem; transition: transform .2s; }
+.lang-dd.open .lang-chevron { transform: rotate(180deg); }
+.lang-dd-menu {
+  display: none; position: absolute; top: calc(100% + 8px); right: 0;
+  background: #faf8f4; border: 1px solid rgba(197,160,89,0.3);
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 8px 28px rgba(25,27,30,0.14);
+  min-width: 150px; z-index: 50;
 }
-.item-lang button.active { background: #c5a059; color: #fff; }
+.lang-dd.open .lang-dd-menu { display: block; }
+.lang-dd-opt {
+  padding: 10px 16px; font-size: .84rem; font-weight: 600;
+  color: #2b2b2a; cursor: pointer; transition: background .15s;
+}
+.lang-dd-opt:hover { background: rgba(197,160,89,0.1); }
+.lang-dd-opt.active { color: #c5a059; font-weight: 800; }
+
 .item-back {
   display: flex; align-items: center; gap: 6px;
   color: #6b6862; font-weight: 600; font-size: .82rem;
@@ -87,36 +104,27 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
 }
 .item-back:hover { border-color: #c5a059; color: #2b2b2a; }
 
-/* Body — two columns */
 .item-body {
   flex: 1; min-height: 0;
   display: flex; gap: 0;
   padding: 20px 28px 24px;
 }
-
-/* Left: big photo */
 .item-photo-col {
   flex: 0 0 42%;
   display: flex; align-items: center; justify-content: center;
   padding-right: 28px;
 }
 .item-photo-wrap {
-  width: 100%; max-width: 380px;
-  /* square via padding trick */
-  padding-bottom: min(100%, 380px); height: 0;
+  width: 100%; padding-bottom: 100%; height: 0;
   position: relative;
   border-radius: 20px; overflow: hidden;
   box-shadow: 0 16px 48px rgba(25,27,30,0.14);
   background: #edeef0;
 }
-/* fallback for browsers without min() in padding */
-.item-photo-wrap { padding-bottom: 100%; }
 .item-photo-wrap img {
   position: absolute; top: 0; left: 0;
   width: 100%; height: 100%; object-fit: cover;
 }
-
-/* Right: details */
 .item-info-col {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column;
@@ -149,14 +157,10 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
 }
 .item-desc {
   font-size: clamp(.78rem, 1.1vw, .92rem);
-  color: #6b6862; line-height: 1.6;
-  margin: 0 0 16px;
+  color: #6b6862; line-height: 1.6; margin: 0 0 16px;
 }
-
-/* Divider */
 .item-divider { height: 1px; background: #ddd6c8; margin: 0 0 14px; }
 
-/* Allergens */
 .item-section-title {
   font-size: .68rem; font-weight: 800; letter-spacing: .08em;
   text-transform: uppercase; color: #8a8378; margin-bottom: 8px;
@@ -170,12 +174,25 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
 }
 .item-no-allergen { font-size: .78rem; color: #6b6862; margin-bottom: 16px; }
 
-/* Nutrition table */
+/* Nutrition toggle button */
+.item-nut-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; background: rgba(197,160,89,0.08);
+  border: 1px solid rgba(197,160,89,0.25); border-radius: 10px;
+  padding: 9px 14px; font-size: .8rem; font-weight: 800;
+  color: #8a7040; cursor: pointer; margin-bottom: 8px;
+  font-family: var(--font-body); text-align: left;
+}
+.item-nut-toggle:hover { background: rgba(197,160,89,0.14); }
+.nut-chevron { font-size: .6rem; transition: transform .2s; margin-left: auto; }
+.item-nut-toggle.open .nut-chevron { transform: rotate(180deg); }
+
 .item-nutrition {
   background: #fff; border: 1px solid #ddd6c8;
   border-radius: 12px; padding: 12px 14px;
-  margin-bottom: 20px;
+  margin-bottom: 14px; display: none;
 }
+.item-nutrition.open { display: block; }
 .item-nutrition table { width: 100%; border-collapse: collapse; }
 .item-nutrition th {
   font-weight: 900; font-size: .82rem;
@@ -185,20 +202,12 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
   font-size: 1rem; font-weight: 900;
   border-bottom: 3px solid #2b2b2a; padding: 3px 0;
 }
-.item-nutrition td {
-  padding: 3px 0; border-bottom: 1px solid #ddd6c8;
-  font-size: .74rem; color: #2b2b2a;
-}
+.item-nutrition td { padding: 3px 0; border-bottom: 1px solid #ddd6c8; font-size: .74rem; color: #2b2b2a; }
 .item-nutrition td.val { text-align: right; }
-.item-nutrition .nut-thick td { border-bottom: 3px solid #2b2b2a; }
 
-/* Stock note */
-.item-stock-note {
-  font-size: .74rem; color: #8a8378; margin-bottom: 12px;
-}
-.item-stock-low { color: #dc3545; font-weight: 700; }
+.item-stock-note { font-size: .74rem; color: #8a8378; margin-bottom: 12px; }
+.item-stock-low  { color: #dc3545; font-weight: 700; }
 
-/* Order button — pushed to bottom */
 .item-order-btn {
   display: flex; align-items: center; justify-content: center; gap: 10px;
   background: linear-gradient(180deg, #e8c96a, #c5a059);
@@ -210,7 +219,7 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
   margin-top: auto;
   transition: transform .14s, box-shadow .14s;
 }
-.item-order-btn:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(197,160,89,0.2); }
+.item-order-btn:active { transform: scale(0.97); }
 .item-order-btn .arrow {
   width: 26px; height: 26px; border-radius: 50%;
   background: #1a1208; color: #c5a059;
@@ -229,7 +238,6 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
 <div class="item-screen">
   <div class="item-frame">
 
-    <!-- Topbar -->
     <div class="item-topbar">
       <a class="item-back" href="<?= htmlspecialchars($backUrl) ?>">
         ‹ <?= $lang === 'zh' ? '返回菜單' : 'Back to Menu' ?>
@@ -238,19 +246,22 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
         <img src="<?= asset('assets/brand/logo.png') ?>" alt="Yo-Kai Express">
       </a>
       <div class="t-right">
-        <div class="item-lang">
-          <button class="<?= $lang === 'en' ? 'active' : '' ?>"
-                  onclick="location.href='item.php?id=<?= urlencode($itemId) ?>&cat=<?= urlencode($backCat) ?>&lang=en'">EN</button>
-          <button class="<?= $lang === 'zh' ? 'active' : '' ?>"
-                  onclick="location.href='item.php?id=<?= urlencode($itemId) ?>&cat=<?= urlencode($backCat) ?>&lang=zh'">中文</button>
+        <div class="lang-dd" id="itemLangDd" onclick="event.stopPropagation()">
+          <div class="lang-dd-btn" onclick="toggleDD('itemLangDd')">
+            🌐 <span><?= htmlspecialchars($currentLangLabel) ?></span> <span class="lang-chevron">▼</span>
+          </div>
+          <div class="lang-dd-menu">
+            <div class="lang-dd-opt <?= $lang==='en'?'active':'' ?>" onclick="setLang('en')">🇺🇸 English</div>
+            <div class="lang-dd-opt <?= $lang==='zh'?'active':'' ?>" onclick="setLang('zh')">🇹🇼 中文</div>
+            <div class="lang-dd-opt <?= $lang==='ja'?'active':'' ?>" onclick="setLang('ja')">🇯🇵 日本語</div>
+            <div class="lang-dd-opt <?= $lang==='ko'?'active':'' ?>" onclick="setLang('ko')">🇰🇷 한국어</div>
+            <div class="lang-dd-opt <?= $lang==='es'?'active':'' ?>" onclick="setLang('es')">🇪🇸 Español</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Body -->
     <div class="item-body">
-
-      <!-- Left: photo -->
       <div class="item-photo-col">
         <div class="item-photo-wrap">
           <img src="<?= htmlspecialchars(asset($item['img'])) ?>"
@@ -258,17 +269,12 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
         </div>
       </div>
 
-      <!-- Right: info -->
       <div class="item-info-col">
-
         <?php
-          $badgeEn = $item['badge']['en'] ?? null;
+          $badgeEn   = $item['badge']['en'] ?? null;
           $badgeText = $item['badge'][$lang] ?? $badgeEn;
           $badgeClass = match($badgeEn) {
-            'Spicy'       => 'spicy',
-            'Vegan'       => 'vegan',
-            'New'         => 'new',
-            default       => '',
+            'Spicy' => 'spicy', 'Vegan' => 'vegan', 'New' => 'new', default => '',
           };
         ?>
         <?php if ($badgeText): ?>
@@ -281,7 +287,6 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
 
         <div class="item-divider"></div>
 
-        <!-- Allergens -->
         <div class="item-section-title"><?= $lang === 'zh' ? '過敏原' : 'Allergens' ?></div>
         <?php if ($allergenList): ?>
           <div class="item-allergen-row">
@@ -296,10 +301,14 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
           <p class="item-no-allergen"><?= $lang === 'zh' ? '無已知過敏原' : 'No known allergens' ?></p>
         <?php endif; ?>
 
-        <!-- Nutrition -->
+        <!-- Nutrition toggle -->
         <?php if ($n): ?>
-        <div class="item-section-title"><?= $lang === 'zh' ? '營養標示' : 'Nutrition Facts' ?></div>
-        <div class="item-nutrition">
+        <button type="button" class="item-nut-toggle" id="nutToggle"
+                onclick="this.classList.toggle('open'); document.getElementById('nutPanel').classList.toggle('open')">
+          <?= $lang === 'zh' ? '營養標示' : 'Nutrition Facts' ?>
+          <span class="nut-chevron">▼</span>
+        </button>
+        <div class="item-nutrition" id="nutPanel">
           <table>
             <tr><th colspan="2"><?= $lang === 'zh' ? '營養標示' : 'Nutrition Facts' ?></th></tr>
             <tr><td colspan="2" style="font-size:.68rem;color:#8a8378;padding-top:6px;">
@@ -314,27 +323,21 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
             <tr><td style="font-weight:700;"><?= $lang === 'zh' ? '鈉' : 'Sodium' ?> <?= $n['sodium'] ?>mg</td><td class="val"><?= $n['sodium_dv'] ?>%</td></tr>
             <tr><td style="font-weight:700;"><?= $lang === 'zh' ? '總碳水' : 'Total Carbohydrate' ?> <?= $n['carbs'] ?>g</td><td class="val"><?= $n['carbs_dv'] ?>%</td></tr>
             <tr><td style="padding-left:12px;"><?= $lang === 'zh' ? '糖' : 'Total Sugars' ?> <?= $n['sugar'] ?>g</td><td class="val">—</td></tr>
-            <tr class="nut-thick"><td style="font-weight:700;"><?= $lang === 'zh' ? '蛋白質' : 'Protein' ?> <?= $n['protein'] ?>g</td><td class="val">—</td></tr>
+            <tr><td style="font-weight:700;"><?= $lang === 'zh' ? '蛋白質' : 'Protein' ?> <?= $n['protein'] ?>g</td><td class="val">—</td></tr>
           </table>
         </div>
         <?php endif; ?>
 
-        <!-- Stock note -->
         <?php if (!$soldOut && $item['stock'] <= 5): ?>
-          <p class="item-stock-note item-stock-low">
-            <?= $lang === 'zh' ? "僅剩 {$item['stock']} 份！" : "Only {$item['stock']} left!" ?>
-          </p>
+          <p class="item-stock-note item-stock-low"><?= $lang === 'zh' ? "僅剩 {$item['stock']} 份！" : "Only {$item['stock']} left!" ?></p>
         <?php elseif (!$soldOut && $item['stock'] <= 10): ?>
-          <p class="item-stock-note">
-            <?= $lang === 'zh' ? "剩餘 {$item['stock']} 份" : "{$item['stock']} remaining" ?>
-          </p>
+          <p class="item-stock-note"><?= $lang === 'zh' ? "剩餘 {$item['stock']} 份" : "{$item['stock']} remaining" ?></p>
         <?php endif; ?>
 
-        <!-- Order button -->
         <?php if ($soldOut): ?>
           <div class="item-sold-out"><?= $lang === 'zh' ? '目前售罄' : 'Currently Sold Out' ?></div>
         <?php else: ?>
-          <form method="post">
+          <form method="post" style="margin-top:auto;">
             <input type="hidden" name="add_bowl" value="<?= htmlspecialchars($item['id']) ?>">
             <button type="submit" class="item-order-btn">
               <?= $lang === 'zh' ? '點這碗' : 'Order This Bowl' ?>
@@ -342,10 +345,22 @@ $backUrl = 'menu.php' . ($backCat ? '?cat=' . urlencode($backCat) : '');
             </button>
           </form>
         <?php endif; ?>
-
-      </div><!-- .item-info-col -->
-    </div><!-- .item-body -->
-  </div><!-- .item-frame -->
-</div><!-- .item-screen -->
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function setLang(l) {
+  const u = new URL(window.location.href);
+  u.searchParams.set('lang', l);
+  window.location.href = u.toString();
+}
+function toggleDD(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+document.addEventListener('click', function() {
+  document.querySelectorAll('.lang-dd').forEach(d => d.classList.remove('open'));
+});
+</script>
 </body>
 </html>

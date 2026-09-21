@@ -68,12 +68,12 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
 }
 .pickup-headline {
   font-family: var(--font-display); font-weight: 900;
-  font-size: clamp(1.6rem, 3.5vw, 3rem);
+  font-size: clamp(2rem, 4.5vw, 3.8rem);
   color: #2b2b2a; text-align: center; line-height: 1.15;
 }
 .pickup-headline .arrow { color: #c5a059; }
 .pickup-sub {
-  font-size: clamp(.88rem, 1.4vw, 1.15rem);
+  font-size: clamp(1.1rem, 1.8vw, 1.5rem);
   color: #6b6862; text-align: center; font-weight: 600;
 }
 .pickup-qr {
@@ -101,19 +101,51 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
   display: flex; align-items: flex-end; justify-content: center;
 }
 
-/* Shiba chef image — bobs up and down */
 .shiba-chef-img {
   height: 200px; width: auto;
-  animation: shiba-bob 1.6s ease-in-out infinite;
-  transform-origin: bottom center;
   filter: drop-shadow(0 8px 16px rgba(25,27,30,0.15));
+  transform-origin: bottom center;
+  animation: shiba-cycle 9s ease-in-out infinite;
 }
-@keyframes shiba-bob {
-  0%,100% { transform: translateY(0) rotate(-2deg); }
-  50%      { transform: translateY(-12px) rotate(2deg); }
+/* 3 poses cycling: bob → stir (lean forward) → taste (lean back + flip) → celebrate (jump) */
+@keyframes shiba-cycle {
+  /* idle bob — pose 1 */
+  0%   { transform: translateY(0)     rotate(-2deg) scaleX(1); }
+  4%   { transform: translateY(-12px) rotate(-2deg) scaleX(1); }
+  8%   { transform: translateY(0)     rotate(-2deg) scaleX(1); }
+  12%  { transform: translateY(-12px) rotate(-2deg) scaleX(1); }
+  16%  { transform: translateY(0)     rotate(-2deg) scaleX(1); }
+  /* transition to stir */
+  20%  { transform: translateY(0)     rotate(0deg)  scaleX(1); }
+  /* stirring — lean forward — pose 2 */
+  24%  { transform: translateY(-5px)  rotate(10deg) scaleX(1); }
+  28%  { transform: translateY(0)     rotate(10deg) scaleX(1); }
+  32%  { transform: translateY(-5px)  rotate(10deg) scaleX(1); }
+  36%  { transform: translateY(0)     rotate(10deg) scaleX(1); }
+  40%  { transform: translateY(-5px)  rotate(10deg) scaleX(1); }
+  44%  { transform: translateY(0)     rotate(10deg) scaleX(1); }
+  /* transition to taste */
+  48%  { transform: translateY(0)     rotate(0deg)  scaleX(1); }
+  /* tasting — lean back + mirror flip — pose 3 */
+  52%  { transform: translateY(-4px)  rotate(-12deg) scaleX(-1); }
+  56%  { transform: translateY(0)     rotate(-12deg) scaleX(-1); }
+  60%  { transform: translateY(-4px)  rotate(-12deg) scaleX(-1); }
+  64%  { transform: translateY(0)     rotate(-12deg) scaleX(-1); }
+  /* transition to celebrate */
+  68%  { transform: translateY(0)     rotate(0deg)  scaleX(1); }
+  /* celebrate — jump! */
+  74%  { transform: translateY(-22px) rotate(0deg)  scaleX(1) scaleY(1.08); }
+  78%  { transform: translateY(0)     rotate(0deg)  scaleX(1) scaleY(0.92); }
+  82%  { transform: translateY(-10px) rotate(0deg)  scaleX(1) scaleY(1.04); }
+  86%  { transform: translateY(0)     rotate(0deg)  scaleX(1) scaleY(1); }
+  /* back to idle */
+  100% { transform: translateY(0)     rotate(-2deg) scaleX(1); }
 }
 
-/* Pot / cooking surface */
+.shiba-label {
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  color: #8a7040; font-weight: 700; text-align: center;
+}
 .shiba-pot {
   position: absolute; bottom: 0; left: 50%;
   transform: translateX(-50%);
@@ -150,7 +182,6 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
 }
 
 .shiba-label {
-  font-size: clamp(.78rem, 1.1vw, .95rem);
   color: #8a7040; font-weight: 700; text-align: center;
 }
 

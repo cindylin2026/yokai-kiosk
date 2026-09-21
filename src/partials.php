@@ -12,9 +12,17 @@ function render_topbar(bool $showLang = true): void
         </a>
         <div class="topbar-tools">
             <?php if ($showLang): ?>
-            <div class="lang-toggle">
-                <button type="button" class="<?= $enActive ? 'active' : '' ?>" onclick="setLang('en')">EN</button>
-                <button type="button" class="<?= !$enActive ? 'active' : '' ?>" onclick="setLang('zh')">中文</button>
+            <div class="lang-dd" id="topbarLangDd" onclick="event.stopPropagation()">
+                <div class="lang-dd-btn" onclick="this.closest('.lang-dd').classList.toggle('open')">
+                    🌐 <span><?= ($_SESSION['lang']??'en')==='zh'?'中文':'English' ?></span> <span class="lang-chevron">▼</span>
+                </div>
+                <div class="lang-dd-menu">
+                    <div class="lang-dd-opt <?= $enActive?'active':'' ?>" onclick="setLang('en')">🇺🇸 English</div>
+                    <div class="lang-dd-opt <?= !$enActive?'active':'' ?>" onclick="setLang('zh')">🇹🇼 中文</div>
+                    <div class="lang-dd-opt" onclick="setLang('ja')">🇯🇵 日本語</div>
+                    <div class="lang-dd-opt" onclick="setLang('ko')">🇰🇷 한국어</div>
+                    <div class="lang-dd-opt" onclick="setLang('es')">🇪🇸 Español</div>
+                </div>
             </div>
             <?php endif; ?>
             <a class="icon-btn" href="cart.php" title="<?= t('your_cart') ?>" aria-label="<?= t('your_cart') ?>">

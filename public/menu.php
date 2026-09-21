@@ -4,7 +4,7 @@ require_once __DIR__ . '/../src/config.php';
 
 $lang = $_SESSION['lang'] ?? 'en';
 
-if (isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'zh'], true)) {
+if (isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'zh', 'ja', 'ko', 'es'], true)) {
     $_SESSION['lang'] = $_GET['lang'];
     $lang = $_SESSION['lang'];
     $qs = $_GET; unset($qs['lang']);
@@ -19,6 +19,9 @@ if (!isset($categories[$activeCat])) $activeCat = $catKeys[0];
 $_SESSION['last_cat'] = $activeCat;
 
 $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $activeCat));
+
+$langLabels = ['en'=>'English','zh'=>'中文','ja'=>'日本語','ko'=>'한국어','es'=>'Español'];
+$currentLangLabel = $langLabels[$lang] ?? 'English';
 ?>
 <!doctype html>
 <html lang="<?= $lang === 'zh' ? 'zh-Hant' : 'en' ?>">
@@ -28,7 +31,6 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
 <title>Yo-Kai Express — <?= $lang === 'zh' ? '菜單' : 'Menu' ?></title>
 <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
 <style>
-/* ── Full-page menu ── */
 .menu-screen {
   min-height: 100vh; width: 100%;
   background: #ece8e1;
@@ -51,17 +53,34 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
   padding: 14px 28px 0; flex: 0 0 auto;
 }
 .menu-topbar .t-logo img { height: 30px; width: auto; }
-.menu-topbar .t-right    { display: flex; align-items: center; gap: 12px; }
-.menu-lang {
-  display: flex; background: rgba(25,27,30,0.06);
-  border: 1px solid rgba(197,160,89,0.3); border-radius: 999px; padding: 2px;
+.menu-topbar .t-right { display: flex; align-items: center; gap: 12px; }
+
+/* Language dropdown */
+.lang-dd { position: relative; }
+.lang-dd-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(25,27,30,0.06); border: 1px solid rgba(197,160,89,0.3);
+  border-radius: 999px; padding: 7px 16px;
+  font-weight: 700; font-size: .8rem; color: #6b6862;
+  cursor: pointer; white-space: nowrap; user-select: none;
 }
-.menu-lang button {
-  border: none; background: transparent; color: #6b6862;
-  padding: 5px 14px; border-radius: 999px; font-weight: 700; font-size: .8rem;
-  cursor: pointer; font-family: var(--font-body); transition: all .18s;
+.lang-chevron { font-size: .6rem; transition: transform .2s; }
+.lang-dd.open .lang-chevron { transform: rotate(180deg); }
+.lang-dd-menu {
+  display: none; position: absolute; top: calc(100% + 8px); right: 0;
+  background: #faf8f4; border: 1px solid rgba(197,160,89,0.3);
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 8px 28px rgba(25,27,30,0.14);
+  min-width: 150px; z-index: 50;
 }
-.menu-lang button.active { background: #c5a059; color: #fff; }
+.lang-dd.open .lang-dd-menu { display: block; }
+.lang-dd-opt {
+  padding: 10px 16px; font-size: .84rem; font-weight: 600;
+  color: #2b2b2a; cursor: pointer; transition: background .15s;
+}
+.lang-dd-opt:hover { background: rgba(197,160,89,0.1); }
+.lang-dd-opt.active { color: #c5a059; font-weight: 800; }
+
 .menu-cart-btn {
   display: flex; align-items: center; gap: 7px;
   background: #2b2b2a; color: #fff; font-weight: 700; font-size: .82rem;
@@ -91,7 +110,7 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
   box-shadow: 0 4px 12px rgba(197,160,89,0.3);
 }
 
-/* Grid — full width, 4 columns */
+/* Grid */
 .menu-grid {
   flex: 1; min-height: 0;
   display: flex; flex-wrap: wrap;
@@ -105,7 +124,6 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
 .menu-grid::-webkit-scrollbar-thumb { background: rgba(197,160,89,0.35); border-radius: 2px; }
 
 .menu-card {
-  /* 4 columns, 3 gaps of 16px */
   flex: 0 0 calc((100% - 48px) / 4);
   background: #fff;
   border: 1.5px solid rgba(197,160,89,0.15);
@@ -123,7 +141,7 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
 }
 .menu-card.sold-out { opacity: .45; pointer-events: none; }
 
-/* Square photo via padding-% trick */
+/* Square photo */
 .mc-photo {
   width: 100%; padding-bottom: 100%; height: 0;
   position: relative; border-radius: 12px; overflow: hidden;
@@ -142,22 +160,23 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
   color: #c5a059; font-size: 1rem; margin-top: 5px;
 }
 
-/* Partner logo slot — top-left of each card, empty placeholder */
+/* Partner logo — top LEFT */
 .mc-partner-logo {
-  position: absolute; top: 8px; right: 8px;
-  width: 28px; height: 28px; border-radius: 6px;
+  position: absolute; top: 8px; left: 8px;
+  width: 32px; height: 32px; border-radius: 6px;
   background: rgba(255,255,255,0.9);
-  border: 1px solid rgba(197,160,89,0.2);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden; z-index: 2;
 }
 .mc-partner-logo img { width: 100%; height: 100%; object-fit: contain; }
 .mc-partner-logo.empty {
-  /* dotted placeholder when no logo is set */
-  border: 1.5px dashed rgba(197,160,89,0.35);
+  border: 1.5px dashed rgba(197,160,89,0.4);
   background: rgba(197,160,89,0.04);
 }
-  position: absolute; top: 8px; left: 8px;
+
+/* Badges — top RIGHT */
+.mc-badge {
+  position: absolute; top: 8px; right: 8px;
   font-size: 9px; font-weight: 800; letter-spacing: .04em;
   padding: 3px 9px; border-radius: 999px; color: #fff;
   background: #c5a059; text-transform: uppercase; z-index: 1;
@@ -173,15 +192,23 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
 <div class="menu-screen">
   <div class="menu-frame">
 
-    <!-- Topbar -->
     <div class="menu-topbar">
       <a class="t-logo" href="index.php">
         <img src="<?= asset('assets/brand/logo.png') ?>" alt="Yo-Kai Express">
       </a>
       <div class="t-right">
-        <div class="menu-lang">
-          <button class="<?= $lang === 'en' ? 'active' : '' ?>" onclick="setLang('en')">EN</button>
-          <button class="<?= $lang === 'zh' ? 'active' : '' ?>" onclick="setLang('zh')">中文</button>
+        <!-- Language dropdown -->
+        <div class="lang-dd" id="menuLangDd" onclick="event.stopPropagation()">
+          <div class="lang-dd-btn" onclick="toggleDD('menuLangDd')">
+            🌐 <span><?= htmlspecialchars($currentLangLabel) ?></span> <span class="lang-chevron">▼</span>
+          </div>
+          <div class="lang-dd-menu">
+            <div class="lang-dd-opt <?= $lang==='en'?'active':'' ?>" onclick="setLang('en')">🇺🇸 English</div>
+            <div class="lang-dd-opt <?= $lang==='zh'?'active':'' ?>" onclick="setLang('zh')">🇹🇼 中文</div>
+            <div class="lang-dd-opt <?= $lang==='ja'?'active':'' ?>" onclick="setLang('ja')">🇯🇵 日本語</div>
+            <div class="lang-dd-opt <?= $lang==='ko'?'active':'' ?>" onclick="setLang('ko')">🇰🇷 한국어</div>
+            <div class="lang-dd-opt <?= $lang==='es'?'active':'' ?>" onclick="setLang('es')">🇪🇸 Español</div>
+          </div>
         </div>
         <?php $cartCount = Cart::count(); if ($cartCount > 0): ?>
           <a class="menu-cart-btn" href="cart.php">
@@ -191,17 +218,15 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
       </div>
     </div>
 
-    <!-- Category tabs -->
     <div class="menu-tabs">
       <?php foreach ($categories as $key => $cat): ?>
         <a class="menu-tab <?= $key === $activeCat ? 'active' : '' ?>"
            href="menu.php?cat=<?= urlencode($key) ?>">
-          <?= htmlspecialchars($cat[$lang]) ?>
+          <?= htmlspecialchars($cat[$lang] ?? $cat['en']) ?>
         </a>
       <?php endforeach; ?>
     </div>
 
-    <!-- Full-width item grid -->
     <div class="menu-grid">
       <?php foreach ($items as $item):
         $soldOut   = $item['stock'] <= 0;
@@ -211,7 +236,6 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
           'Spicy'       => 'spicy',
           'Vegan'       => 'vegan',
           'New'         => 'new',
-          "Chef's Pick" => '',
           default       => '',
         };
         $detailUrl = 'item.php?id=' . urlencode($item['id']) . '&cat=' . urlencode($activeCat);
@@ -219,6 +243,10 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
         <a class="menu-card <?= $soldOut ? 'sold-out' : '' ?>"
            href="<?= $soldOut ? '#' : $detailUrl ?>">
 
+          <!-- Partner logo top-left -->
+          <div class="mc-partner-logo empty"></div>
+
+          <!-- Badge top-right -->
           <?php if ($soldOut): ?>
             <span class="mc-badge soldout"><?= $lang === 'zh' ? '售罄' : 'Sold Out' ?></span>
           <?php elseif ($item['stock'] <= 3): ?>
@@ -226,9 +254,6 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
           <?php elseif ($badgeText): ?>
             <span class="mc-badge <?= $badgeClass ?>"><?= htmlspecialchars($badgeText) ?></span>
           <?php endif; ?>
-
-          <!-- Partner logo placeholder top-right -->
-          <div class="mc-partner-logo empty" title="Partner logo"></div>
 
           <div class="mc-photo">
             <img src="<?= htmlspecialchars(asset($item['img'])) ?>"
@@ -241,8 +266,8 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
       <?php endforeach; ?>
     </div>
 
-  </div><!-- .menu-frame -->
-</div><!-- .menu-screen -->
+  </div>
+</div>
 
 <script>
 function setLang(l) {
@@ -250,6 +275,12 @@ function setLang(l) {
   u.searchParams.set('lang', l);
   window.location.href = u.toString();
 }
+function toggleDD(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+document.addEventListener('click', function() {
+  document.querySelectorAll('.lang-dd').forEach(d => d.classList.remove('open'));
+});
 </script>
 </body>
 </html>

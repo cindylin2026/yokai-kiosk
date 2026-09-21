@@ -49,6 +49,32 @@ button { font-family: inherit; }
 .kiosk-logo-elegant { text-align: center; text-decoration: none; line-height: 1; }
 .kiosk-logo-elegant img { height: 36px; width: auto; }
 
+/* ── Shared language dropdown (used by partials render_topbar, menu.php, item.php) ── */
+.lang-dd { position: relative; }
+.lang-dd-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--chip-bg); border: 1px solid var(--chip-border);
+  border-radius: 999px; padding: 7px 16px;
+  font-weight: 700; font-size: var(--step-xs); color: var(--label-secondary);
+  cursor: pointer; white-space: nowrap; user-select: none;
+}
+.lang-chevron { font-size: .6rem; transition: transform .2s; }
+.lang-dd.open .lang-chevron { transform: rotate(180deg); }
+.lang-dd-menu {
+  display: none; position: absolute; top: calc(100% + 8px); right: 0;
+  background: #faf8f4; border: 1px solid rgba(197,160,89,0.3);
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 8px 28px rgba(25,27,30,0.14);
+  min-width: 150px; z-index: 100;
+}
+.lang-dd.open .lang-dd-menu { display: block; }
+.lang-dd-opt {
+  padding: 10px 16px; font-size: .84rem; font-weight: 600;
+  color: #2b2b2a; cursor: pointer; transition: background .15s;
+}
+.lang-dd-opt:hover { background: rgba(197,160,89,0.1); }
+.lang-dd-opt.active { color: #c5a059; font-weight: 800; }
+
 .topbar-tools { display: flex; align-items: center; }
 .topbar-tools > * + * { margin-left: var(--sp-2); }
 

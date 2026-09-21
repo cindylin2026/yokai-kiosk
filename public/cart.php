@@ -104,47 +104,16 @@ $lang = $_SESSION['lang'] ?? 'en';
     <?php endforeach; ?>
 </form>
 
-<?php if ($promoResult === 'ok'): $promo = Cart::promo(); $rg = mascot('ramen-girl'); ?>
-<div class="seal-backdrop cart-elegant-scope" id="sealModal">
-    <div class="seal-card">
-        <button class="close-x" onclick="closeSeal()" aria-label="Close">✕</button>
-        <div class="chef-widget" style="justify-content:center;margin-bottom:var(--sp-2);">
-            <div class="chef-avatar"><img src="<?= asset(mascot('shiba')['avatar']) ?>" alt=""></div>
-            <div class="chef-bubble"><?= $lang === 'zh' ? '猜猜看，拉麵妹藏在哪個杯子裡？' : 'Guess which cup Ramen Girl is hiding under!' ?></div>
-        </div>
-        <div class="cup-game-row" id="cupRow">
-            <div class="cup-prize" id="cupPrize"><img src="<?= asset($rg['avatar']) ?>" alt=""></div>
-            <button type="button" class="cup-btn" data-i="0" onclick="pickCup(this)"></button>
-            <button type="button" class="cup-btn" data-i="1" onclick="pickCup(this)"></button>
-            <button type="button" class="cup-btn" data-i="2" onclick="pickCup(this)"></button>
-        </div>
-        <div class="cup-result" id="cupResult" style="display:none;">
-            <div class="code-pill"><?= htmlspecialchars($promo['code']) ?></div>
-            <div class="cr-amount"><?= $lang === 'zh' ? '成功折抵 ' . money(Cart::discount()) . '！' : 'You saved ' . money(Cart::discount()) . '!' ?></div>
-            <button class="btn btn-primary btn-block" style="margin-top:var(--sp-3);" onclick="closeSeal()"><?= $lang === 'zh' ? '太棒了！' : 'Amazing!' ?></button>
-        </div>
-    </div>
+<?php if ($promoResult === 'ok'): $promo = Cart::promo(); ?>
+<div style="
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  background:#f6f4f0; border:1.5px solid rgba(197,160,89,0.4);
+  border-radius:14px; padding:14px 24px; font-weight:700; color:#8a7040;
+  box-shadow:0 8px 24px rgba(25,27,30,0.1); z-index:50;
+  display:flex; align-items:center; gap:10px; white-space:nowrap;
+">
+  ✓ <?= $lang==='zh' ? '優惠碼已套用，折抵 '.money(Cart::discount()) : 'Promo applied — you saved '.money(Cart::discount()) ?>
 </div>
-<script>
-function closeSeal(){
-    document.getElementById('sealModal').style.display = 'none';
-}
-function pickCup(btn){
-    document.querySelectorAll('.cup-btn').forEach(b => b.disabled = true);
-    const row = document.getElementById('cupRow');
-    const prize = document.getElementById('cupPrize');
-    const rowRect = row.getBoundingClientRect();
-    const btnRect = btn.getBoundingClientRect();
-    const centerX = (btnRect.left - rowRect.left) + (btnRect.width / 2);
-    prize.style.left = centerX + 'px';
-    btn.classList.add('lifted');
-    prize.classList.add('show');
-    if (navigator.vibrate) { try { navigator.vibrate([15, 30, 15]); } catch (e) {} }
-    setTimeout(() => {
-        document.getElementById('cupResult').style.display = 'block';
-    }, 550);
-}
-</script>
 <?php endif; ?>
 
 <?php if ($promoResult === 'fail'): ?>
