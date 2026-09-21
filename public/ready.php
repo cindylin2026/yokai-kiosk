@@ -16,6 +16,16 @@ $lang = $_SESSION['lang'] ?? 'en';
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Yo-Kai Express — <?= t('meal_ready') ?></title>
 <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
+<style>
+.ready-caution {
+  font-size: clamp(1rem, 1.8vw, 1.4rem); font-weight: 800;
+  color: #c5392a; margin: 16px 0 6px;
+}
+.ready-stir {
+  font-size: clamp(.9rem, 1.5vw, 1.2rem); font-weight: 600;
+  color: #6b6862; margin-bottom: 16px;
+}
+</style>
 </head>
 <body>
 <div class="ready-screen">
@@ -25,6 +35,13 @@ $lang = $_SESSION['lang'] ?? 'en';
         <div class="ready-order">#<?= htmlspecialchars($order['number']) ?></div>
 
         <div class="door-status"><span class="dot"></span> <?= $lang === 'zh' ? '出餐口已開啟，請取餐' : 'Pickup door is open — please collect your order' ?></div>
+
+        <div class="ready-caution">
+            ⚠️ <?= $lang === 'zh' ? '注意：碗很燙，請小心' : 'Caution: bowl is hot' ?>
+        </div>
+        <div class="ready-stir">
+            🥢 <?= $lang === 'zh' ? '享用前請攪拌均勻' : 'Please give your bowl a good stir before eating' ?>
+        </div>
 
         <div class="ready-enjoy"><?= $lang === 'zh' ? '祝您用餐愉快！' : 'Enjoy your meal!' ?></div>
     </div>

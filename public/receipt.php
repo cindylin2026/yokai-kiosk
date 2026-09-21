@@ -35,7 +35,16 @@ $lang = $_SESSION['lang'] ?? 'en';
     </div>
 
     <div class="modal-backdrop" id="emailModal" style="display:none;">
-        <div class="modal-card keyboard-card">
+        <div class="modal-card keyboard-card" style="position:relative;">
+            <!-- Skip button -->
+            <button type="button" onclick="skipEmail()" style="
+              position:absolute; top:12px; right:12px;
+              width:32px; height:32px; border-radius:50%;
+              border:none; background:rgba(25,27,30,0.07);
+              color:#6b6862; font-size:1rem; cursor:pointer;
+              display:flex; align-items:center; justify-content:center;
+              font-family:var(--font-body);
+            " title="Skip">✕</button>
             <h3 class="vk-title"><?= $lang === 'zh' ? '輸入 Email 收取電子收據' : 'Enter your email for a digital receipt' ?></h3>
             <div class="vk-field" id="vkField"><span id="vkText"></span><span class="vk-caret">|</span></div>
             <div class="vk-domain-row" id="vkDomainRow"></div>
@@ -128,6 +137,10 @@ function openEmailKeyboard(){
     buildKeyboard();
     buildDomainRow();
     document.getElementById('emailModal').style.display = 'flex';
+}
+function skipEmail(){
+    document.getElementById('emailModal').style.display = 'none';
+    window.location.href = 'cooking.php?method=<?= urlencode($method) ?>';
 }
 function submitEmail(){
     if (!emailValue.includes('@')) {

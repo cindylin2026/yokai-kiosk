@@ -121,22 +121,40 @@ if (isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'zh'], true)) {
   50%      { box-shadow: 0 0 0 10px rgba(197,160,89,0.10), 0 10px 30px rgba(197,160,89,0.5); }
 }
 
-/* Lang toggle — top right */
+/* Lang dropdown — top right */
 .attract-lang {
   position: absolute; top: 4%; right: 3%; z-index: 4;
-  display: flex;
-  background: rgba(236,232,225,0.85);
+}
+.lang-select-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(236,232,225,0.9);
   border: 1px solid rgba(197,160,89,0.4);
-  border-radius: 999px; padding: 3px;
+  border-radius: 999px; padding: 7px 16px;
+  font-weight: 700; font-size: .82rem; color: #6b6862;
+  cursor: pointer; font-family: var(--font-body);
   backdrop-filter: blur(6px);
 }
-.attract-lang button {
-  border: none; background: transparent; color: #6b6862;
-  padding: 6px 14px; border-radius: 999px;
-  font-weight: 700; font-size: .8rem;
-  cursor: pointer; font-family: var(--font-body); transition: all .18s;
+.lang-select-btn .globe { font-size: 1rem; }
+.lang-select-btn .chevron { font-size: .6rem; transition: transform .2s; }
+.lang-select-btn.open .chevron { transform: rotate(180deg); }
+.lang-dropdown {
+  display: none; position: absolute; top: calc(100% + 8px); right: 0;
+  background: rgba(250,248,244,0.97);
+  border: 1px solid rgba(197,160,89,0.3);
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 8px 28px rgba(25,27,30,0.14);
+  min-width: 160px; backdrop-filter: blur(12px);
 }
-.attract-lang button.active { background: #c5a059; color: #fff; }
+.lang-dropdown.open { display: block; }
+.lang-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 18px; cursor: pointer;
+  font-size: .84rem; font-weight: 600; color: #2b2b2a;
+  transition: background .15s;
+}
+.lang-option:hover { background: rgba(197,160,89,0.1); }
+.lang-option.active { color: #c5a059; font-weight: 800; }
+.lang-option .flag { font-size: 1.1rem; }
 </style>
 </head>
 <body>
@@ -165,11 +183,37 @@ if (isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'zh'], true)) {
     </div>
 
     <div class="attract-lang" onclick="event.stopPropagation()">
-      <button class="<?= $lang === 'en' ? 'active' : '' ?>" onclick="location.href='index.php?lang=en'">EN</button>
-      <button class="<?= $lang === 'zh' ? 'active' : '' ?>" onclick="location.href='index.php?lang=zh'">中文</button>
+      <div class="lang-select-btn" id="langBtn" onclick="toggleLangMenu()">
+        <span class="globe">🌐</span>
+        <span id="langLabel"><?= $lang === 'zh' ? '中文' : 'English' ?></span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="lang-dropdown" id="langDropdown">
+        <div class="lang-option <?= $lang === 'en' ? 'active' : '' ?>" onclick="pickLang('en')"><span class="flag">🇺🇸</span> English</div>
+        <div class="lang-option <?= $lang === 'zh' ? 'active' : '' ?>" onclick="pickLang('zh')"><span class="flag">🇹🇼</span> 中文</div>
+        <div class="lang-option" onclick="pickLang('ja')"><span class="flag">🇯🇵</span> 日本語</div>
+        <div class="lang-option" onclick="pickLang('ko')"><span class="flag">🇰🇷</span> 한국어</div>
+        <div class="lang-option" onclick="pickLang('es')"><span class="flag">🇪🇸</span> Español</div>
+      </div>
     </div>
 
   </div>
 </div>
+<script>
+function toggleLangMenu() {
+  const btn = document.getElementById('langBtn');
+  const dd  = document.getElementById('langDropdown');
+  btn.classList.toggle('open');
+  dd.classList.toggle('open');
+}
+function pickLang(l) {
+  location.href = 'index.php?lang=' + l;
+}
+// Close dropdown if user taps elsewhere on the frame
+document.querySelector('.attract-frame').addEventListener('click', function() {
+  document.getElementById('langBtn').classList.remove('open');
+  document.getElementById('langDropdown').classList.remove('open');
+});
+</script>
 </body>
 </html>

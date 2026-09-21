@@ -142,8 +142,21 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
   color: #c5a059; font-size: 1rem; margin-top: 5px;
 }
 
-/* Badges */
-.mc-badge {
+/* Partner logo slot — top-left of each card, empty placeholder */
+.mc-partner-logo {
+  position: absolute; top: 8px; right: 8px;
+  width: 28px; height: 28px; border-radius: 6px;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(197,160,89,0.2);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; z-index: 2;
+}
+.mc-partner-logo img { width: 100%; height: 100%; object-fit: contain; }
+.mc-partner-logo.empty {
+  /* dotted placeholder when no logo is set */
+  border: 1.5px dashed rgba(197,160,89,0.35);
+  background: rgba(197,160,89,0.04);
+}
   position: absolute; top: 8px; left: 8px;
   font-size: 9px; font-weight: 800; letter-spacing: .04em;
   padding: 3px 9px; border-radius: 999px; color: #fff;
@@ -213,6 +226,9 @@ $items = array_values(array_filter(menu_items(), fn($i) => $i['category'] === $a
           <?php elseif ($badgeText): ?>
             <span class="mc-badge <?= $badgeClass ?>"><?= htmlspecialchars($badgeText) ?></span>
           <?php endif; ?>
+
+          <!-- Partner logo placeholder top-right -->
+          <div class="mc-partner-logo empty" title="Partner logo"></div>
 
           <div class="mc-photo">
             <img src="<?= htmlspecialchars(asset($item['img'])) ?>"
