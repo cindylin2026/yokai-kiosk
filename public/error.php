@@ -54,19 +54,17 @@ $lang = $_SESSION['lang'] ?? 'en';
   filter: grayscale(1) brightness(0.72) drop-shadow(0 8px 20px rgba(25,27,30,0.18));
   transform: rotate(-8deg) translateY(6%);
   transform-origin: bottom center;
+  display: block;
 }
-/* Phone emoji on the raised hand — positioned top-right of the chef image */
+/* Phone emoji sits on the raised left hand — top-left of the image ~15% from left, 35% from top */
 .error-phone-emoji {
   position: absolute;
-  top: 8%; right: 12%;
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.2));
-  animation: phone-ring .5s ease-in-out infinite alternate;
-  transform-origin: bottom center;
-}
-@keyframes phone-ring {
-  from { transform: rotate(-12deg) scale(1); }
-  to   { transform: rotate(8deg)  scale(1.08); }
+  /* fine-tuned to match the raised paw position */
+  left: 4%;
+  top: 28%;
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  /* no animation — static */
 }
 
 /* RIGHT — message */
@@ -90,7 +88,7 @@ $lang = $_SESSION['lang'] ?? 'en';
 .error-headline {
   font-family: var(--font-display); font-weight: 900;
   font-size: clamp(1.6rem, 3.5vw, 3rem);
-  color: #2b2b2a; line-height: 1.2;
+  color: #7b1c2e; line-height: 1.2;
   margin: 0 0 3%;
 }
 
