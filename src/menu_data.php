@@ -4,10 +4,10 @@ declare(strict_types=1);
 function menu_categories(): array
 {
     return [
-        'ramen'  => ['en' => 'Ramen',      'zh' => '拉麵',   'icon' => '🍜'],
-        'bowls'  => ['en' => 'Rice Bowls', 'zh' => '丼飯',   'icon' => '🍚'],
-        'noodles'=> ['en' => 'Noodles',    'zh' => '麵食',   'icon' => '🍝'],
-        'sides'  => ['en' => 'Sides',      'zh' => '小菜',   'icon' => '🥟'],
+        'noodles' => ['en' => 'Ramen & Noodles', 'zh' => '拉麵與麵食', 'icon' => '🍜'],
+        'bowls'   => ['en' => 'Rice Bowls',      'zh' => '丼飯',       'icon' => '🍚'],
+        'pasta'   => ['en' => 'Pasta',            'zh' => '義大利麵',   'icon' => '🍝'],
+        'steamed' => ['en' => 'Steamed',          'zh' => '蒸食',       'icon' => '🥟'],
     ];
 }
 
@@ -16,7 +16,7 @@ function menu_items(): array
     return [
         [
             'id' => 'chashu-tonkotsu-ramen',
-            'category' => 'ramen',
+            'category' => 'noodles',
             'name' => ['en' => 'Chashu Tonkotsu Ramen', 'zh' => '叉燒豚骨拉麵'],
             'desc' => ['en' => 'Rich pork bone broth with tender chashu pork belly, soft-boiled egg, nori, corn and scallion.',
                        'zh' => '濃郁豚骨湯底，搭配軟嫩叉燒、溏心蛋、海苔、玉米與蔥花。'],
@@ -36,7 +36,7 @@ function menu_items(): array
         ],
         [
             'id' => 'spicy-chashu-ramen',
-            'category' => 'ramen',
+            'category' => 'noodles',
             'name' => ['en' => 'Spicy Chashu Ramen', 'zh' => '辣味叉燒拉麵'],
             'desc' => ['en' => 'Spicy miso broth with chashu pork, chili oil, bean sprouts and a soft-boiled egg.',
                        'zh' => '辣味噌湯底，搭配叉燒、辣油、豆芽菜與溏心蛋。'],
@@ -56,7 +56,7 @@ function menu_items(): array
         ],
         [
             'id' => 'beef-noodle-soup',
-            'category' => 'ramen',
+            'category' => 'noodles',
             'name' => ['en' => 'Beef Noodle Soup', 'zh' => '紅燒牛肉麵'],
             'desc' => ['en' => 'Braised beef in a rich soy-spiced broth over thick wheat noodles with bok choy.',
                        'zh' => '紅燒牛腩搭配濃郁醬香湯底，厚麵條與青江菜。'],
@@ -75,7 +75,7 @@ function menu_items(): array
         ],
         [
             'id' => 'udon',
-            'category' => 'ramen',
+            'category' => 'noodles',
             'name' => ['en' => 'Udon', 'zh' => '烏龍麵'],
             'desc' => ['en' => 'Thick chewy udon noodles in a dashi broth with tempura flakes, fish cake and scallion.',
                        'zh' => '彈牙烏龍麵條，搭配柴魚昆布高湯、天婦羅碎、魚板與蔥花。'],
@@ -132,7 +132,7 @@ function menu_items(): array
         ],
         [
             'id' => 'dan-dan-noodles',
-            'category' => 'noodles',
+            'category' => 'pasta',
             'name' => ['en' => 'Spicy Vegetarian Dan Dan Noodles', 'zh' => '素食擔擔麵'],
             'desc' => ['en' => 'Wheat noodles in a spicy sesame-soy sauce with crispy tofu, bok choy and peanuts.',
                        'zh' => '麵條拌入香辣芝麻醬，搭配脆豆腐、青江菜與花生碎。'],
@@ -151,7 +151,7 @@ function menu_items(): array
         ],
         [
             'id' => 'mentaiko-pasta',
-            'category' => 'noodles',
+            'category' => 'pasta',
             'name' => ['en' => 'Mentaiko Pasta', 'zh' => '明太子義大利麵'],
             'desc' => ['en' => 'Al dente pasta tossed in a creamy spiced pollock roe sauce with butter and nori.',
                        'zh' => '彈牙義大利麵拌入奶油辣味明太子醬，佐以海苔絲。'],
@@ -170,7 +170,7 @@ function menu_items(): array
         ],
         [
             'id' => 'seafood-pesto-pasta',
-            'category' => 'noodles',
+            'category' => 'pasta',
             'name' => ['en' => 'Seafood Pesto Pasta', 'zh' => '海鮮青醬義大利麵'],
             'desc' => ['en' => 'Linguine tossed with basil pesto, shrimp, scallops and cherry tomatoes.',
                        'zh' => '扁麵條拌入羅勒青醬，搭配鮮蝦、干貝與小番茄。'],
@@ -189,7 +189,7 @@ function menu_items(): array
         ],
         [
             'id' => 'wonton-soup',
-            'category' => 'sides',
+            'category' => 'steamed',
             'name' => ['en' => 'Wonton Soup', 'zh' => '雲吞湯'],
             'desc' => ['en' => 'Pork and shrimp wontons in a clear ginger-scallion broth.', 'zh' => '豬肉鮮蝦雲吞，搭配清淡薑蔥湯底。'],
             'price' => 5.99,
@@ -206,7 +206,7 @@ function menu_items(): array
         ],
         [
             'id' => 'soup-dumplings',
-            'category' => 'sides',
+            'category' => 'steamed',
             'name' => ['en' => 'Soup Dumplings (6pc)', 'zh' => '小籠包（6顆）'],
             'desc' => ['en' => 'Steamed pork soup dumplings with a rich broth filling and ginger dipping sauce.', 'zh' => '豬肉湯包，一口咬下鮮美湯汁，附薑絲沾醬。'],
             'price' => 7.99,

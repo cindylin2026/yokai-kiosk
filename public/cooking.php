@@ -90,56 +90,63 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
 
 /* RIGHT — Shiba chef animation */
 .pickup-right {
-  flex: 0 0 38%; display: flex; flex-direction: column;
+  flex: 0 0 42%; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 12px;
+  gap: 14px;
 }
 .shiba-stage {
   position: relative;
-  width: 100%; max-width: 300px;
-  height: 260px;
+  width: 100%; max-width: 340px;
+  height: 320px;
   display: flex; align-items: flex-end; justify-content: center;
 }
 
 .shiba-chef-img {
-  height: 200px; width: auto;
-  filter: drop-shadow(0 8px 16px rgba(25,27,30,0.15));
+  height: 260px; width: auto;
+  filter: drop-shadow(0 10px 20px rgba(25,27,30,0.18));
   transform-origin: bottom center;
-  animation: shiba-cycle 9s ease-in-out infinite;
+  animation: shiba-cook 12s ease-in-out infinite;
 }
-/* 3 poses cycling: bob → stir (lean forward) → taste (lean back + flip) → celebrate (jump) */
-@keyframes shiba-cycle {
-  /* idle bob — pose 1 */
-  0%   { transform: translateY(0)     rotate(-2deg) scaleX(1); }
-  4%   { transform: translateY(-12px) rotate(-2deg) scaleX(1); }
-  8%   { transform: translateY(0)     rotate(-2deg) scaleX(1); }
-  12%  { transform: translateY(-12px) rotate(-2deg) scaleX(1); }
-  16%  { transform: translateY(0)     rotate(-2deg) scaleX(1); }
-  /* transition to stir */
-  20%  { transform: translateY(0)     rotate(0deg)  scaleX(1); }
-  /* stirring — lean forward — pose 2 */
-  24%  { transform: translateY(-5px)  rotate(10deg) scaleX(1); }
-  28%  { transform: translateY(0)     rotate(10deg) scaleX(1); }
-  32%  { transform: translateY(-5px)  rotate(10deg) scaleX(1); }
-  36%  { transform: translateY(0)     rotate(10deg) scaleX(1); }
-  40%  { transform: translateY(-5px)  rotate(10deg) scaleX(1); }
-  44%  { transform: translateY(0)     rotate(10deg) scaleX(1); }
-  /* transition to taste */
-  48%  { transform: translateY(0)     rotate(0deg)  scaleX(1); }
-  /* tasting — lean back + mirror flip — pose 3 */
-  52%  { transform: translateY(-4px)  rotate(-12deg) scaleX(-1); }
-  56%  { transform: translateY(0)     rotate(-12deg) scaleX(-1); }
-  60%  { transform: translateY(-4px)  rotate(-12deg) scaleX(-1); }
-  64%  { transform: translateY(0)     rotate(-12deg) scaleX(-1); }
-  /* transition to celebrate */
-  68%  { transform: translateY(0)     rotate(0deg)  scaleX(1); }
-  /* celebrate — jump! */
-  74%  { transform: translateY(-22px) rotate(0deg)  scaleX(1) scaleY(1.08); }
-  78%  { transform: translateY(0)     rotate(0deg)  scaleX(1) scaleY(0.92); }
-  82%  { transform: translateY(-10px) rotate(0deg)  scaleX(1) scaleY(1.04); }
-  86%  { transform: translateY(0)     rotate(0deg)  scaleX(1) scaleY(1); }
-  /* back to idle */
-  100% { transform: translateY(0)     rotate(-2deg) scaleX(1); }
+
+/*
+  3 cooking poses, 4s each, 12s total loop:
+  Pose 1 (0-4s):  STIRRING — lean forward, rock side to side like stirring a pot
+  Pose 2 (4-8s):  TASTING  — lean back, tilt head, "hmm delicious" nod
+  Pose 3 (8-12s): SERVING  — stand tall, quick bow, proud chef moment
+*/
+@keyframes shiba-cook {
+  /* — POSE 1: STIRRING — */
+  0%    { transform: translateY(0)     rotate(0deg)   scaleX(1); }
+  5%    { transform: translateY(-4px)  rotate(12deg)  scaleX(1); }  /* lean into pot */
+  10%   { transform: translateY(-4px)  rotate(8deg)   scaleX(1); }
+  15%   { transform: translateY(-6px)  rotate(14deg)  scaleX(1); }  /* stir right */
+  20%   { transform: translateY(-4px)  rotate(8deg)   scaleX(1); }
+  25%   { transform: translateY(-6px)  rotate(14deg)  scaleX(1); }  /* stir again */
+  30%   { transform: translateY(-2px)  rotate(6deg)   scaleX(1); }
+  /* — transition — */
+  33%   { transform: translateY(0)     rotate(0deg)   scaleX(1); }
+
+  /* — POSE 2: TASTING — */
+  36%   { transform: translateY(-3px)  rotate(-8deg)  scaleX(1); }  /* lean back */
+  40%   { transform: translateY(-6px)  rotate(-12deg) scaleX(1); }  /* tilt to taste */
+  44%   { transform: translateY(-3px)  rotate(-8deg)  scaleX(1); }  /* nod */
+  48%   { transform: translateY(-8px)  rotate(-14deg) scaleX(1); }  /* another taste */
+  52%   { transform: translateY(-3px)  rotate(-8deg)  scaleX(1); }
+  56%   { transform: translateY(-6px)  rotate(-11deg) scaleX(1); }  /* satisfied nod */
+  60%   { transform: translateY(-2px)  rotate(-5deg)  scaleX(1); }
+  /* — transition — */
+  63%   { transform: translateY(0)     rotate(0deg)   scaleX(1); }
+
+  /* — POSE 3: SERVING (proud bow) — */
+  66%   { transform: translateY(0)     rotate(0deg)   scaleX(1)   scaleY(1); }
+  70%   { transform: translateY(-16px) rotate(0deg)   scaleX(1)   scaleY(1.06); } /* jump up */
+  74%   { transform: translateY(0)     rotate(0deg)   scaleX(1)   scaleY(0.94); } /* land */
+  78%   { transform: translateY(-6px)  rotate(0deg)   scaleX(1)   scaleY(1); }   /* mini bounce */
+  82%   { transform: translateY(0)     rotate(5deg)   scaleX(1); }   /* bow right */
+  86%   { transform: translateY(0)     rotate(-5deg)  scaleX(1); }   /* bow left */
+  90%   { transform: translateY(0)     rotate(0deg)   scaleX(1); }   /* straight */
+  /* — back to start — */
+  100%  { transform: translateY(0)     rotate(0deg)   scaleX(1); }
 }
 
 .shiba-label {
