@@ -46,15 +46,27 @@ $lang = $_SESSION['lang'] ?? 'en';
 .error-left {
   flex: 0 0 40%;
   display: flex; align-items: flex-end; justify-content: center;
-  padding-bottom: 2%;
+  padding-bottom: 2%; position: relative;
 }
 .error-chef {
-  /* Grayscale + slight droop = sad, dejected look */
   height: clamp(160px, 36%, 300px);
   width: auto;
   filter: grayscale(1) brightness(0.72) drop-shadow(0 8px 20px rgba(25,27,30,0.18));
   transform: rotate(-8deg) translateY(6%);
   transform-origin: bottom center;
+}
+/* Phone emoji on the raised hand — positioned top-right of the chef image */
+.error-phone-emoji {
+  position: absolute;
+  top: 8%; right: 12%;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.2));
+  animation: phone-ring .5s ease-in-out infinite alternate;
+  transform-origin: bottom center;
+}
+@keyframes phone-ring {
+  from { transform: rotate(-12deg) scale(1); }
+  to   { transform: rotate(8deg)  scale(1.08); }
 }
 
 /* RIGHT — message */
@@ -131,6 +143,7 @@ $lang = $_SESSION['lang'] ?? 'en';
         <img class="error-chef"
              src="<?= asset('assets/brand/mascot-shiba-chef.webp') ?>"
              alt="Sad Shiba Chef">
+        <span class="error-phone-emoji">📞</span>
       </div>
 
       <!-- Right: message + phone -->

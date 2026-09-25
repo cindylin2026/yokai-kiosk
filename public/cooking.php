@@ -101,67 +101,48 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
   display: flex; align-items: flex-end; justify-content: center;
 }
 
-/* We cycle between 3 visual states using JS class swaps on .shiba-stage:
-   .pose-stir  — lean forward (chef stirring)
-   .pose-taste — lean back (chef tasting / nodding)
-   .pose-serve — bounce up (chef proud / serving)
-   Each pose class changes which img is visible + applies a distinct animation.
-   Two images: chef (upright arms) and avatar (round head) for visual variety.
-*/
-.shiba-img-chef,
-.shiba-img-avatar {
-  position: absolute; bottom: 56px;
+/* 3 images cycle via JS: chef (webp) + 2 gifs */
+.shiba-img {
+  position: absolute; bottom: 0;
   filter: drop-shadow(0 10px 20px rgba(25,27,30,0.18));
   transform-origin: bottom center;
-  transition: opacity .4s ease;
+  opacity: 0;
+  transition: opacity .5s ease;
+  max-height: 300px; width: auto;
 }
-.shiba-img-chef   { height: 260px; width: auto; opacity: 1; }
-.shiba-img-avatar { height: 200px; width: auto; opacity: 0; }
+.shiba-img.active { opacity: 1; }
 
-/* POSE STIR: chef leans forward and rocks */
-.pose-stir .shiba-img-chef   { opacity: 1; animation: stir-rock 1s ease-in-out infinite; }
-.pose-stir .shiba-img-avatar { opacity: 0; }
-@keyframes stir-rock {
-  0%,100% { transform: rotate(0deg)   translateY(0); }
-  25%     { transform: rotate(14deg)  translateY(-4px); }
-  50%     { transform: rotate(8deg)   translateY(-2px); }
-  75%     { transform: rotate(16deg)  translateY(-6px); }
+/* chef webp: gentle bob */
+.shiba-img-chef.active {
+  animation: chef-bob-gentle 1.8s ease-in-out infinite;
 }
-
-/* POSE TASTE: avatar peeks out, tilts to taste */
-.pose-taste .shiba-img-chef   { opacity: 0; }
-.pose-taste .shiba-img-avatar { opacity: 1; animation: taste-nod 1.2s ease-in-out infinite; }
-@keyframes taste-nod {
-  0%,100% { transform: rotate(0deg)   translateY(0)     scaleX(1); }
-  30%     { transform: rotate(-14deg) translateY(-8px)  scaleX(1); }
-  50%     { transform: rotate(-8deg)  translateY(-4px)  scaleX(1); }
-  70%     { transform: rotate(-16deg) translateY(-10px) scaleX(1); }
+@keyframes chef-bob-gentle {
+  0%,100% { transform: translateY(0) rotate(-1deg); }
+  50%      { transform: translateY(-10px) rotate(1deg); }
 }
 
-/* POSE SERVE: chef bounces up proudly */
-.pose-serve .shiba-img-chef   { opacity: 1; animation: serve-bounce .8s ease-in-out infinite; }
-.pose-serve .shiba-img-avatar { opacity: 0; }
-@keyframes serve-bounce {
-  0%,100% { transform: translateY(0)    rotate(0deg)  scaleY(1); }
-  30%     { transform: translateY(-20px) rotate(4deg) scaleY(1.06); }
-  55%     { transform: translateY(0)    rotate(-3deg) scaleY(0.94); }
-  75%     { transform: translateY(-8px) rotate(2deg)  scaleY(1.02); }
+/* gif1 (stir): slight lean forward to match cooking context */
+.shiba-img-gif1.active { animation: gif-lean 1s ease-in-out infinite alternate; }
+@keyframes gif-lean {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(3deg) translateY(-4px); }
 }
 
-.shiba-pot {
-  position: absolute; bottom: 0; left: 50%;
-  transform: translateX(-50%);
-  font-size: clamp(3rem, 5.5vw, 5rem);
-  animation: pot-bubble 1.2s ease-in-out infinite alternate;
-  z-index: 2;
-}
-@keyframes pot-bubble {
-  from { transform: translateX(-50%) scale(1); }
-  to   { transform: translateX(-50%) scale(1.07); }
+/* gif2 (flame): excited shake */
+.shiba-img-gif2.active { animation: gif-shake .5s ease-in-out infinite alternate; }
+@keyframes gif-shake {
+  from { transform: rotate(-2deg) scale(1); }
+  to   { transform: rotate(2deg) scale(1.03); }
 }
 
+.shiba-label {
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  color: #8a7040; font-weight: 700; text-align: center;
+}
+
+/* Steam */
 .shiba-steam {
-  position: absolute; bottom: 64px; left: 50%;
+  position: absolute; bottom: 30px; left: 50%;
   transform: translateX(-50%);
   width: 90px; height: 70px; pointer-events: none; z-index: 1;
 }
@@ -181,11 +162,6 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
   15%  { opacity: 1; }
   60%  { transform: translateY(-44px) scaleX(1.6); opacity: 0.5; }
   100% { transform: translateY(-75px) scaleX(2.1); opacity: 0; }
-}
-
-.shiba-label {
-  font-size: clamp(1rem, 1.4vw, 1.2rem);
-  color: #8a7040; font-weight: 700; text-align: center;
 }
 
 /* Countdown overlay */
@@ -228,19 +204,22 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
 
       <!-- RIGHT: Shiba chef cooking animation -->
       <div class="pickup-right">
-        <div class="shiba-stage pose-stir" id="shibaStage">
-          <img class="shiba-img-chef"
+        <div class="shiba-stage" id="shibaStage">
+          <!-- 3 images cycle: chef webp → gif stir → gif flame -->
+          <img class="shiba-img shiba-img-chef active"
                src="<?= asset('assets/brand/mascot-shiba-chef.webp') ?>"
                alt="Shiba chef">
-          <img class="shiba-img-avatar"
-               src="<?= asset('assets/brand/mascot-shiba-avatar.webp') ?>"
-               alt="Shiba">
+          <img class="shiba-img shiba-img-gif1"
+               src="<?= asset('assets/brand/shiba-stir.gif') ?>"
+               alt="Shiba stirring">
+          <img class="shiba-img shiba-img-gif2"
+               src="<?= asset('assets/brand/shiba-flame.gif') ?>"
+               alt="Shiba flame cooking">
           <div class="shiba-steam">
             <div class="s"></div>
             <div class="s"></div>
             <div class="s"></div>
           </div>
-          <div class="shiba-pot">🍜</div>
         </div>
         <div class="shiba-label">
           <?= $lang === 'zh' ? '正在為您烹調…' : 'Cooking your order…' ?>
@@ -255,14 +234,13 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
 </div>
 
 <script>
-// Cycle shiba poses every 4s: stir → taste → serve → stir...
-const poses = ['pose-stir', 'pose-taste', 'pose-serve'];
-let poseIdx = 0;
-const stage = document.getElementById('shibaStage');
+// Cycle shiba images every 4s: chef webp → stir gif → flame gif → repeat
+const shibaImgs = document.querySelectorAll('.shiba-img');
+let shibaIdx = 0;
 setInterval(function() {
-  stage.classList.remove(poses[poseIdx]);
-  poseIdx = (poseIdx + 1) % poses.length;
-  stage.classList.add(poses[poseIdx]);
+  shibaImgs[shibaIdx].classList.remove('active');
+  shibaIdx = (shibaIdx + 1) % shibaImgs.length;
+  shibaImgs[shibaIdx].classList.add('active');
 }, 4000);
 
 const total     = <?= (int)$totalSecs ?>;
