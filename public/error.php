@@ -56,16 +56,6 @@ $lang = $_SESSION['lang'] ?? 'en';
   transform-origin: bottom center;
   display: block;
 }
-/* Phone emoji sits on the raised left hand — top-left of the image ~15% from left, 35% from top */
-.error-phone-emoji {
-  position: absolute;
-  /* fine-tuned to match the raised paw position */
-  left: 4%;
-  top: 28%;
-  font-size: clamp(1.6rem, 3vw, 2.6rem);
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-  /* no animation — static */
-}
 
 /* RIGHT — message */
 .error-right {
@@ -141,7 +131,6 @@ $lang = $_SESSION['lang'] ?? 'en';
         <img class="error-chef"
              src="<?= asset('assets/brand/mascot-shiba-chef.webp') ?>"
              alt="Sad Shiba Chef">
-        <span class="error-phone-emoji">📞</span>
       </div>
 
       <!-- Right: message + phone -->
