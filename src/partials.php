@@ -97,8 +97,8 @@ function render_chef_widget(array $item, string $mascotKey = 'shiba'): void
     $urgent = (int)($item['stock'] ?? 0) > 0 && (int)($item['stock'] ?? 0) <= 3;
     ?>
     <div class="chef-widget">
-        <div class="chef-avatar"><img src="<?= asset($m['avatar']) ?>" alt="<?= htmlspecialchars($m['name'][$lang]) ?>"></div>
-        <div class="chef-bubble <?= $urgent ? 'urgent' : '' ?>"><?= htmlspecialchars($line[$lang]) ?></div>
+        <div class="chef-avatar"><img src="<?= asset($m['avatar']) ?>" alt="<?= htmlspecialchars($m['name'][$lang] ?? $m['name']['en']) ?>"></div>
+        <div class="chef-bubble <?= $urgent ? 'urgent' : '' ?>"><?= htmlspecialchars($line[$lang] ?? $line['en']) ?></div>
     </div>
     <?php
 }
@@ -142,7 +142,7 @@ function render_stepper(string $active): void
             $state = $i < $activeIdx ? 'done' : ($i === $activeIdx ? 'active' : ''); ?>
             <div class="step <?= $state ?>">
                 <span class="dot"></span>
-                <span><?= htmlspecialchars($steps[$key][$lang]) ?></span>
+                <span><?= htmlspecialchars($steps[$key][$lang] ?? $steps[$key]['en']) ?></span>
             </div>
             <?php if ($i < count($keys) - 1): ?><div class="line"></div><?php endif; ?>
         <?php endforeach; ?>
