@@ -88,7 +88,7 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
   height: auto;
 }
 
-/* RIGHT — Shiba chef animation */
+/* RIGHT — Shiba chef cooking animation */
 .pickup-right {
   flex: 0 0 42%; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
@@ -96,99 +96,95 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
 }
 .shiba-stage {
   position: relative;
-  width: 100%; max-width: 340px;
-  height: 320px;
+  width: 100%; max-width: 360px;
+  height: 340px;
   display: flex; align-items: flex-end; justify-content: center;
 }
 
-.shiba-chef-img {
-  height: 260px; width: auto;
+/* We cycle between 3 visual states using JS class swaps on .shiba-stage:
+   .pose-stir  — lean forward (chef stirring)
+   .pose-taste — lean back (chef tasting / nodding)
+   .pose-serve — bounce up (chef proud / serving)
+   Each pose class changes which img is visible + applies a distinct animation.
+   Two images: chef (upright arms) and avatar (round head) for visual variety.
+*/
+.shiba-img-chef,
+.shiba-img-avatar {
+  position: absolute; bottom: 56px;
   filter: drop-shadow(0 10px 20px rgba(25,27,30,0.18));
   transform-origin: bottom center;
-  animation: shiba-cook 12s ease-in-out infinite;
+  transition: opacity .4s ease;
+}
+.shiba-img-chef   { height: 260px; width: auto; opacity: 1; }
+.shiba-img-avatar { height: 200px; width: auto; opacity: 0; }
+
+/* POSE STIR: chef leans forward and rocks */
+.pose-stir .shiba-img-chef   { opacity: 1; animation: stir-rock 1s ease-in-out infinite; }
+.pose-stir .shiba-img-avatar { opacity: 0; }
+@keyframes stir-rock {
+  0%,100% { transform: rotate(0deg)   translateY(0); }
+  25%     { transform: rotate(14deg)  translateY(-4px); }
+  50%     { transform: rotate(8deg)   translateY(-2px); }
+  75%     { transform: rotate(16deg)  translateY(-6px); }
 }
 
-/*
-  3 cooking poses, 4s each, 12s total loop:
-  Pose 1 (0-4s):  STIRRING — lean forward, rock side to side like stirring a pot
-  Pose 2 (4-8s):  TASTING  — lean back, tilt head, "hmm delicious" nod
-  Pose 3 (8-12s): SERVING  — stand tall, quick bow, proud chef moment
-*/
-@keyframes shiba-cook {
-  /* — POSE 1: STIRRING — */
-  0%    { transform: translateY(0)     rotate(0deg)   scaleX(1); }
-  5%    { transform: translateY(-4px)  rotate(12deg)  scaleX(1); }  /* lean into pot */
-  10%   { transform: translateY(-4px)  rotate(8deg)   scaleX(1); }
-  15%   { transform: translateY(-6px)  rotate(14deg)  scaleX(1); }  /* stir right */
-  20%   { transform: translateY(-4px)  rotate(8deg)   scaleX(1); }
-  25%   { transform: translateY(-6px)  rotate(14deg)  scaleX(1); }  /* stir again */
-  30%   { transform: translateY(-2px)  rotate(6deg)   scaleX(1); }
-  /* — transition — */
-  33%   { transform: translateY(0)     rotate(0deg)   scaleX(1); }
+/* POSE TASTE: avatar peeks out, tilts to taste */
+.pose-taste .shiba-img-chef   { opacity: 0; }
+.pose-taste .shiba-img-avatar { opacity: 1; animation: taste-nod 1.2s ease-in-out infinite; }
+@keyframes taste-nod {
+  0%,100% { transform: rotate(0deg)   translateY(0)     scaleX(1); }
+  30%     { transform: rotate(-14deg) translateY(-8px)  scaleX(1); }
+  50%     { transform: rotate(-8deg)  translateY(-4px)  scaleX(1); }
+  70%     { transform: rotate(-16deg) translateY(-10px) scaleX(1); }
+}
 
-  /* — POSE 2: TASTING — */
-  36%   { transform: translateY(-3px)  rotate(-8deg)  scaleX(1); }  /* lean back */
-  40%   { transform: translateY(-6px)  rotate(-12deg) scaleX(1); }  /* tilt to taste */
-  44%   { transform: translateY(-3px)  rotate(-8deg)  scaleX(1); }  /* nod */
-  48%   { transform: translateY(-8px)  rotate(-14deg) scaleX(1); }  /* another taste */
-  52%   { transform: translateY(-3px)  rotate(-8deg)  scaleX(1); }
-  56%   { transform: translateY(-6px)  rotate(-11deg) scaleX(1); }  /* satisfied nod */
-  60%   { transform: translateY(-2px)  rotate(-5deg)  scaleX(1); }
-  /* — transition — */
-  63%   { transform: translateY(0)     rotate(0deg)   scaleX(1); }
+/* POSE SERVE: chef bounces up proudly */
+.pose-serve .shiba-img-chef   { opacity: 1; animation: serve-bounce .8s ease-in-out infinite; }
+.pose-serve .shiba-img-avatar { opacity: 0; }
+@keyframes serve-bounce {
+  0%,100% { transform: translateY(0)    rotate(0deg)  scaleY(1); }
+  30%     { transform: translateY(-20px) rotate(4deg) scaleY(1.06); }
+  55%     { transform: translateY(0)    rotate(-3deg) scaleY(0.94); }
+  75%     { transform: translateY(-8px) rotate(2deg)  scaleY(1.02); }
+}
 
-  /* — POSE 3: SERVING (proud bow) — */
-  66%   { transform: translateY(0)     rotate(0deg)   scaleX(1)   scaleY(1); }
-  70%   { transform: translateY(-16px) rotate(0deg)   scaleX(1)   scaleY(1.06); } /* jump up */
-  74%   { transform: translateY(0)     rotate(0deg)   scaleX(1)   scaleY(0.94); } /* land */
-  78%   { transform: translateY(-6px)  rotate(0deg)   scaleX(1)   scaleY(1); }   /* mini bounce */
-  82%   { transform: translateY(0)     rotate(5deg)   scaleX(1); }   /* bow right */
-  86%   { transform: translateY(0)     rotate(-5deg)  scaleX(1); }   /* bow left */
-  90%   { transform: translateY(0)     rotate(0deg)   scaleX(1); }   /* straight */
-  /* — back to start — */
-  100%  { transform: translateY(0)     rotate(0deg)   scaleX(1); }
+.shiba-pot {
+  position: absolute; bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  font-size: clamp(3rem, 5.5vw, 5rem);
+  animation: pot-bubble 1.2s ease-in-out infinite alternate;
+  z-index: 2;
+}
+@keyframes pot-bubble {
+  from { transform: translateX(-50%) scale(1); }
+  to   { transform: translateX(-50%) scale(1.07); }
+}
+
+.shiba-steam {
+  position: absolute; bottom: 64px; left: 50%;
+  transform: translateX(-50%);
+  width: 90px; height: 70px; pointer-events: none; z-index: 1;
+}
+.shiba-steam .s {
+  position: absolute; bottom: 0;
+  width: 12px; border-radius: 50% 50% 20% 20%;
+  background: rgba(255,255,255,0.6);
+  filter: blur(5px);
+  animation: steam-rise 2.4s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+.shiba-steam .s:nth-child(1){ left:5px;  height:32px; animation-delay:0s;   animation-duration:2.4s; }
+.shiba-steam .s:nth-child(2){ left:32px; height:44px; animation-delay:0.5s; animation-duration:2.8s; }
+.shiba-steam .s:nth-child(3){ left:58px; height:36px; animation-delay:1s;   animation-duration:2.2s; }
+@keyframes steam-rise {
+  0%   { transform: translateY(0)     scaleX(1);   opacity: 0; }
+  15%  { opacity: 1; }
+  60%  { transform: translateY(-44px) scaleX(1.6); opacity: 0.5; }
+  100% { transform: translateY(-75px) scaleX(2.1); opacity: 0; }
 }
 
 .shiba-label {
   font-size: clamp(1rem, 1.4vw, 1.2rem);
-  color: #8a7040; font-weight: 700; text-align: center;
-}
-.shiba-pot {
-  position: absolute; bottom: 0; left: 50%;
-  transform: translateX(-50%);
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  animation: pot-bubble 1.2s ease-in-out infinite alternate;
-}
-@keyframes pot-bubble {
-  from { transform: translateX(-50%) scale(1); }
-  to   { transform: translateX(-50%) scale(1.06); }
-}
-
-/* Steam from pot */
-.shiba-steam {
-  position: absolute; bottom: 52px; left: 50%;
-  transform: translateX(-50%);
-  width: 80px; height: 60px; pointer-events: none;
-}
-.shiba-steam .s {
-  position: absolute; bottom: 0;
-  width: 10px; border-radius: 50% 50% 20% 20%;
-  background: rgba(255,255,255,0.65);
-  filter: blur(4px);
-  animation: steam-rise 2.4s ease-in-out infinite;
-  transform-origin: bottom center;
-}
-.shiba-steam .s:nth-child(1){ left:5px;  height:30px; animation-delay:0s;   animation-duration:2.4s; }
-.shiba-steam .s:nth-child(2){ left:28px; height:40px; animation-delay:0.5s; animation-duration:2.8s; }
-.shiba-steam .s:nth-child(3){ left:52px; height:34px; animation-delay:1s;   animation-duration:2.2s; }
-@keyframes steam-rise {
-  0%   { transform: translateY(0)    scaleX(1)   opacity: 0; }
-  15%  { opacity: 1; }
-  60%  { transform: translateY(-40px) scaleX(1.5); opacity: 0.5; }
-  100% { transform: translateY(-70px) scaleX(2);   opacity: 0; }
-}
-
-.shiba-label {
   color: #8a7040; font-weight: 700; text-align: center;
 }
 
@@ -232,10 +228,13 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
 
       <!-- RIGHT: Shiba chef cooking animation -->
       <div class="pickup-right">
-        <div class="shiba-stage">
-          <img class="shiba-chef-img"
+        <div class="shiba-stage pose-stir" id="shibaStage">
+          <img class="shiba-img-chef"
                src="<?= asset('assets/brand/mascot-shiba-chef.webp') ?>"
-               alt="Shiba chef cooking">
+               alt="Shiba chef">
+          <img class="shiba-img-avatar"
+               src="<?= asset('assets/brand/mascot-shiba-avatar.webp') ?>"
+               alt="Shiba">
           <div class="shiba-steam">
             <div class="s"></div>
             <div class="s"></div>
@@ -256,6 +255,16 @@ $browseUrl = KIOSK_BASE_URL . '/menu.php?browse=1';
 </div>
 
 <script>
+// Cycle shiba poses every 4s: stir → taste → serve → stir...
+const poses = ['pose-stir', 'pose-taste', 'pose-serve'];
+let poseIdx = 0;
+const stage = document.getElementById('shibaStage');
+setInterval(function() {
+  stage.classList.remove(poses[poseIdx]);
+  poseIdx = (poseIdx + 1) % poses.length;
+  stage.classList.add(poses[poseIdx]);
+}, 4000);
+
 const total     = <?= (int)$totalSecs ?>;
 const browseUrl = <?= json_encode($browseUrl) ?>;
 let remaining   = total;

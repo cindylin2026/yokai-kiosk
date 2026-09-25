@@ -11,11 +11,12 @@ $lang = $_SESSION['lang'] ?? 'en';
 <title>Yo-Kai Express — Error</title>
 <link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
 <style>
+* { box-sizing: border-box; }
 .error-screen {
   min-height: 100vh; width: 100%;
   background: #ece8e1;
   display: flex; align-items: center; justify-content: center;
-  padding: 18px; box-sizing: border-box;
+  padding: 18px;
 }
 .error-frame {
   width: calc(100vw - 36px); max-width: 1400px;
@@ -24,85 +25,95 @@ $lang = $_SESSION['lang'] ?? 'en';
   border-radius: 22px; border: 1px solid rgba(197,160,89,0.28);
   box-shadow: 0 0 0 1px rgba(197,160,89,0.1), 0 30px 70px rgba(25,27,30,0.12);
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  text-align: center; padding: 6% 8%;
-  position: relative; overflow: hidden;
+  overflow: hidden; position: relative;
 }
 
 /* Logo top-left */
 .error-logo {
-  position: absolute; top: 4%; left: 4%;
+  position: absolute; top: 4%; left: 4%; z-index: 2;
 }
 .error-logo img { height: 28px; width: auto; }
 
-/* Mascot */
-.error-mascot {
-  width: clamp(80px, 12vw, 140px); height: auto;
-  margin-bottom: 4%;
-  animation: error-shake 0.6s ease-in-out 1s 3;
-}
-@keyframes error-shake {
-  0%,100% { transform: translateX(0) rotate(0deg); }
-  20%      { transform: translateX(-8px) rotate(-4deg); }
-  40%      { transform: translateX(8px) rotate(4deg); }
-  60%      { transform: translateX(-6px) rotate(-3deg); }
-  80%      { transform: translateX(6px) rotate(3deg); }
+/* Two-column body */
+.error-body {
+  flex: 1; display: flex; min-height: 0;
+  padding: 6% 6% 6% 4%;
+  align-items: center;
+  gap: 0;
 }
 
-/* Error icon */
-.error-icon {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  margin-bottom: 3%;
-  animation: icon-pulse 2s ease-in-out infinite;
+/* LEFT — sad chef */
+.error-left {
+  flex: 0 0 40%;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 2%;
 }
-@keyframes icon-pulse {
-  0%,100% { transform: scale(1); }
-  50%      { transform: scale(1.1); }
-}
-
-/* Text */
-.error-oops {
-  font-family: var(--font-display); font-weight: 900;
-  font-size: clamp(1.8rem, 4vw, 3.2rem);
-  color: #c5392a; margin: 0 0 2%;
-  line-height: 1.15;
-}
-.error-msg {
-  font-size: clamp(.95rem, 1.6vw, 1.3rem);
-  color: #6b6862; font-weight: 500;
-  max-width: 600px; line-height: 1.6;
-  margin: 0 0 5%;
+.error-chef {
+  /* Grayscale + slight droop = sad, dejected look */
+  height: clamp(160px, 36%, 300px);
+  width: auto;
+  filter: grayscale(1) brightness(0.72) drop-shadow(0 8px 20px rgba(25,27,30,0.18));
+  transform: rotate(-8deg) translateY(6%);
+  transform-origin: bottom center;
 }
 
-/* Phone number */
-.error-phone {
-  display: inline-flex; align-items: center; gap: 12px;
-  background: #fff; border: 2px solid rgba(197,160,89,0.35);
-  border-radius: 16px; padding: 14px 28px;
-  box-shadow: 0 6px 20px rgba(25,27,30,0.08);
-}
-.error-phone .phone-label {
-  font-size: clamp(.75rem, 1.1vw, .9rem);
-  color: #8a8378; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .06em;
-}
-.error-phone .phone-number {
-  font-family: var(--font-mono); font-weight: 900;
-  font-size: clamp(1.2rem, 2.2vw, 1.8rem);
-  color: #2b2b2a; letter-spacing: .04em;
+/* RIGHT — message */
+.error-right {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  padding-left: 5%;
 }
 
-/* Back button */
-.error-back {
-  position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%);
+.error-badge {
   display: inline-flex; align-items: center; gap: 8px;
-  font-size: clamp(.75rem, 1vw, .88rem); font-weight: 700;
-  color: #8a8378; text-decoration: none;
-  border: 1px solid rgba(197,160,89,0.25); border-radius: 999px;
-  padding: 6px 18px; background: rgba(197,160,89,0.05);
-  transition: all .18s;
+  background: rgba(197,57,42,0.08); border: 1.5px solid rgba(197,57,42,0.25);
+  border-radius: 999px; padding: 6px 16px;
+  font-size: clamp(.72rem, 1vw, .88rem); font-weight: 800;
+  color: #c5392a; letter-spacing: .04em; text-transform: uppercase;
+  margin-bottom: 5%;
+  align-self: flex-start;
 }
-.error-back:hover { border-color: #c5a059; color: #6b6862; }
+
+.error-headline {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(1.6rem, 3.5vw, 3rem);
+  color: #2b2b2a; line-height: 1.2;
+  margin: 0 0 3%;
+}
+
+.error-sub {
+  font-size: clamp(.9rem, 1.4vw, 1.15rem);
+  color: #6b6862; line-height: 1.6; font-weight: 500;
+  margin: 0 0 7%;
+}
+
+/* Phone card — prominent */
+.error-phone-card {
+  display: flex; align-items: center; gap: 18px;
+  background: #fff;
+  border: 2px solid rgba(197,160,89,0.4);
+  border-radius: 18px; padding: 18px 24px;
+  box-shadow: 0 8px 28px rgba(25,27,30,0.08);
+  align-self: flex-start;
+}
+.error-phone-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: rgba(197,57,42,0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; flex: 0 0 auto;
+}
+.error-phone-text {}
+.error-phone-label {
+  font-size: clamp(.68rem, .9vw, .8rem);
+  font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+  color: #8a8378; margin-bottom: 4px;
+}
+.error-phone-number {
+  font-family: var(--font-mono); font-weight: 900;
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  color: #2b2b2a; letter-spacing: .06em;
+}
 </style>
 </head>
 <body>
@@ -113,27 +124,35 @@ $lang = $_SESSION['lang'] ?? 'en';
       <img src="<?= asset('assets/brand/logo.png') ?>" alt="Yo-Kai Express">
     </div>
 
-    <img class="error-mascot"
-         src="<?= asset('assets/brand/mascot-shiba-avatar.webp') ?>"
-         alt="Shiba mascot">
+    <div class="error-body">
 
-    <div class="error-icon">⚠️</div>
-
-    <h1 class="error-oops">Uh Oh! Something is not right.</h1>
-
-    <p class="error-msg">
-      Please contact customer service for immediate assistance.
-    </p>
-
-    <div class="error-phone">
-      <div>
-        <div class="phone-label">Customer Service</div>
-        <div class="phone-number">1-855-965-2439</div>
+      <!-- Left: sad shiba chef -->
+      <div class="error-left">
+        <img class="error-chef"
+             src="<?= asset('assets/brand/mascot-shiba-chef.webp') ?>"
+             alt="Sad Shiba Chef">
       </div>
+
+      <!-- Right: message + phone -->
+      <div class="error-right">
+        <div class="error-badge">⚠️ System Error</div>
+
+        <h1 class="error-headline">Uh Oh!<br>Something is not right.</h1>
+
+        <p class="error-sub">
+          Please contact customer service for immediate assistance.
+        </p>
+
+        <div class="error-phone-card">
+          <div class="error-phone-icon">📞</div>
+          <div class="error-phone-text">
+            <div class="error-phone-label">Customer Service Hotline</div>
+            <div class="error-phone-number">1-855-965-2439</div>
+          </div>
+        </div>
+      </div>
+
     </div>
-
-    <a class="error-back" href="index.php">← Return to Start</a>
-
   </div>
 </div>
 </body>

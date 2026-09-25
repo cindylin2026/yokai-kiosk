@@ -149,7 +149,7 @@ $currentLangLabel = $langLabels[$lang] ?? 'English';
 }
 .mc-photo img {
   position: absolute; top: 0; left: 0;
-  width: 100%; height: 100%; object-fit: cover;
+  width: 100%; height: 100%; object-fit: cover; object-position: center center;
 }
 .mc-name {
   font-family: var(--font-serif); font-size: 1rem; font-weight: 700;
